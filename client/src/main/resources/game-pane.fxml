@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<StackPane prefHeight="720.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/17.0.2-ea"
+           xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.vl4ds4m.keyboardraces.client.GamePaneController">
+
+    <Label alignment="CENTER" prefHeight="80.0" prefWidth="150.0" text="GAME FIELD"/>
+</StackPane>

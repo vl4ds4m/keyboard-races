@@ -2,6 +2,7 @@ package org.vl4ds4m.keyboardraces.client;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -52,7 +53,6 @@ public class GamePaneController {
     private final AtomicBoolean wrongWord = new AtomicBoolean(false);
     private final AtomicInteger wrongCharPos = new AtomicInteger(-1);
     private final AtomicInteger maxLenRightWord = new AtomicInteger(-1);
-    private ChangeListener<String> inputWordsListener;
     private ChangeListener<String> inputCharsListener;
 
     @FXML
@@ -76,76 +76,68 @@ public class GamePaneController {
         chCnt.setText("0");
         errCnt.setText("0");
 
-        inputWordsListener = makeInputWordsListener();
-        inputCharsListener = makeInputCharsListener();
+        inputCharsListener = this::listenInputChars;
 
-        input.textProperty().addListener(inputWordsListener);
         input.textProperty().addListener(inputCharsListener);
-        gameOver.addListener(makeGameOverListener());
+
+        gameOver.addListener(this::listenGameOver);
     }
 
-    private ChangeListener<String> makeInputWordsListener() {
-        return (observableWord, oldWord, newWord) -> {
-            boolean wordEntered = currentWordNum.get() <= words.size() - 1 &&
-                    newWord.equals(words.get(currentWordNum.get()));
-            boolean lastWordEntered = currentWordNum.get() == words.size() - 1 &&
-                    newWord.equals(words.get(currentWordNum.get()));
-            if (wordEntered) {
-                input.clear(); // TODO Correct exceptions
+    // TODO Lock ctrl+V and selection text
+    private void listenInputChars(
+            ObservableValue<? extends String> observableWord,
+            String oldWord,
+            String newWord) {
+        System.out.println(oldWord + " -> " + newWord);
 
-                wrongWord.set(false);
-                wrongCharPos.set(-1);
-                maxLenRightWord.set(0);
+        int lastCharPos = newWord.length() - 1;
+        String currentWord = words.get(currentWordNum.get());
 
-                if (lastWordEntered) {
-                    System.out.println(words.get(currentWordNum.get()) + " -> END");
-                    gameOver.set(true);
-                } else {
-                    System.out.println(words.get(currentWordNum.get()) + " -> " +
-                            words.get(currentWordNum.incrementAndGet()));
-                }
-            }
-        };
-    }
+        if (!wrongWord.get()) {
+            if (currentWord.startsWith(newWord)) {
+                if (newWord.length() > maxLenRightWord.get()) {
+                    inputCharsCount.incrementAndGet();
+                    maxLenRightWord.incrementAndGet();
 
-    private ChangeListener<String> makeInputCharsListener() { // TODO Lock ctrl+V and selection text
-        return (observableWord, oldWord, newWord) -> {
-            System.out.println(oldWord + " -> " + newWord);
+                    chCnt.setText(inputCharsCount.toString());
 
-            int lastCharPos = newWord.length() - 1;
-            String currentWord = words.get(currentWordNum.get());
+                    if (currentWord.equals(newWord)) {
+                        // TODO Correct exceptions
+                        input.clear();
 
-            if (!wrongWord.get()) {
-                if (currentWord.startsWith(newWord)) {
-                    if (newWord.length() > maxLenRightWord.get()) {
-                        inputCharsCount.incrementAndGet();
-                        maxLenRightWord.incrementAndGet();
+                        maxLenRightWord.set(0);
 
-                        chCnt.setText(inputCharsCount.toString());
+                        if (currentWordNum.get() == words.size() - 1) {
+                            System.out.println(words.get(currentWordNum.get()) + " --> END");
+                            gameOver.set(true);
+                        } else {
+                            System.out.println(words.get(currentWordNum.get()) + " --> " +
+                                    words.get(currentWordNum.incrementAndGet()));
+                        }
                     }
-                } else {
-                    wrongWord.set(true);
-                    inputErrorsCount.incrementAndGet();
-                    wrongCharPos.set(lastCharPos);
-
-                    errCnt.setText(inputErrorsCount.toString());
                 }
             } else {
-                if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos.get()) {
-                    wrongWord.set(false);
-                    wrongCharPos.set(-1);
-                }
+                wrongWord.set(true);
+                inputErrorsCount.incrementAndGet();
+                wrongCharPos.set(lastCharPos);
+
+                errCnt.setText(inputErrorsCount.toString());
             }
-        };
+        } else {
+            if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos.get()) {
+                wrongWord.set(false);
+                wrongCharPos.set(-1);
+            }
+        }
     }
 
-    private ChangeListener<Boolean> makeGameOverListener() {
-        return (observableGameOver, oldGameOver, gameOver) -> {
-            if (gameOver) {
-                input.textProperty().removeListener(inputWordsListener);
-                input.textProperty().removeListener(inputCharsListener);
-                text.setDisable(true);
-            }
-        };
+    private void listenGameOver(
+            ObservableValue<? extends Boolean> observableGameOver,
+            Boolean oldGameOver,
+            Boolean gameOver) {
+        if (gameOver) {
+            input.textProperty().removeListener(inputCharsListener);
+            text.setDisable(true);
+        }
     }
 }

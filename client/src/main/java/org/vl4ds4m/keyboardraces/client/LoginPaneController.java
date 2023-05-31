@@ -1,15 +1,13 @@
 package org.vl4ds4m.keyboardraces.client;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-
-import static org.vl4ds4m.keyboardraces.client.Main.setStageParams;
-import static org.vl4ds4m.keyboardraces.client.Main.loadPane;
 
 public class LoginPaneController {
     @FXML
@@ -23,21 +21,26 @@ public class LoginPaneController {
 
     @FXML
     private void initialize() {
-        /*startButton.disableProperty().bind(servAddrTextField.textProperty().isEmpty());
+        startButton.disableProperty().bind(servAddrTextField.textProperty().isEmpty());
         startButton.disableProperty().bind(servPortTextField.textProperty().isEmpty());
-        startButton.disableProperty().bind(userNameTextField.textProperty().isEmpty());*/
+        startButton.disableProperty().bind(userNameTextField.textProperty().isEmpty());
     }
 
     @FXML
     private void clickStartButton() {
         try {
+            Pane gamePane = FXMLLoader.load(Main.getURL("/game-pane.fxml"));
             Stage stage = (Stage) startButton.getScene().getWindow();
-            Pane gamePane = loadPane("/game-pane.fxml");
-            setStageParams(stage, gamePane, "Keyboard Races - Game");
+            Main.setStageParams(stage, gamePane, "Keyboard Races - Game");
+
+            GamePaneController.createPlayer(servAddrTextField.getText(),
+                    Integer.parseInt(servPortTextField.getText()));
+            GamePaneController.connectToServer();
+
             stage.close();
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

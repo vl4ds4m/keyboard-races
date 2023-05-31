@@ -10,8 +10,21 @@ import java.io.IOException;
 import java.net.URL;
 
 public class Main extends Application {
-    Pane loginPane;
-    Pane gamePane;
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Pane loginPane = FXMLLoader.load(getURL("/login-pane.fxml"));
+        setStageParams(primaryStage, loginPane, "Keyboard Races - Login");
+        primaryStage.show();
+    }
+
+
+    static URL getURL(String resourceName) throws IOException {
+        URL url = Main.class.getResource(resourceName);
+        if (url == null) {
+            throw new RuntimeException("The resource '" + resourceName + "' hasn't been found!");
+        }
+        return url;
+    }
 
     static void setStageParams(Stage stage, Pane pane, String title) {
         stage.setTitle(title);
@@ -29,23 +42,5 @@ public class Main extends Application {
 
         stage.setMaxHeight(pane.getMaxHeight() + windowPadding);
         stage.setMaxWidth(pane.getMaxWidth());
-    }
-
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        loginPane = loadPane("/login-pane.fxml");
-        gamePane = loadPane("/game-pane.fxml");
-
-        setStageParams(primaryStage, loginPane, "Keyboard Races - Login");
-
-        primaryStage.show();
-    }
-
-    static Pane loadPane(String resourceName) throws IOException {
-        URL url = Main.class.getResource(resourceName);
-        if (url == null) {
-            throw new RuntimeException("The resource '" + resourceName + "' hasn't been found!");
-        }
-        return FXMLLoader.load(url);
     }
 }

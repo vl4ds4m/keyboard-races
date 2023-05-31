@@ -8,11 +8,11 @@
       xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.vl4ds4m.keyboardraces.client.LoginPaneController">
 
-    <TextField fx:id="servAddrTextField" promptText="Server address"/>
+    <TextField fx:id="servAddrTextField" promptText="Server address" text="localhost"/>
 
-    <TextField fx:id="servPortTextField" promptText="Port"/>
+    <TextField fx:id="servPortTextField" promptText="Port" text="8888"/>
 
-    <TextField fx:id="userNameTextField" promptText="Your name"/>
+    <TextField fx:id="userNameTextField" promptText="Your name" text="Vladidas"/>
 
     <Button fx:id="startButton" alignment="CENTER" maxHeight="30.0" maxWidth="100.0" minHeight="30.0" minWidth="100.0"
             onAction="#clickStartButton" text="Start Game"/>

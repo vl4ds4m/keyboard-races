@@ -11,8 +11,6 @@ import org.vl4ds4m.keyboardraces.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class GamePaneController {
@@ -48,12 +46,12 @@ public class GamePaneController {
     private static Player player;
     private List<String> words;
     private final SimpleBooleanProperty gameOver = new SimpleBooleanProperty(false);
-    private final AtomicInteger currentWordNum = new AtomicInteger(0);
-    private final AtomicInteger inputCharsCount = new AtomicInteger(0);
-    private final AtomicInteger inputErrorsCount = new AtomicInteger(0);
-    private final AtomicBoolean wrongWord = new AtomicBoolean(false);
-    private final AtomicInteger wrongCharPos = new AtomicInteger(-1);
-    private final AtomicInteger maxLenRightWord = new AtomicInteger(-1);
+    private int currentWordNum; //private final AtomicInteger currentWordNum = new AtomicInteger(0);
+    private int inputCharsCount; //private final AtomicInteger inputCharsCount = new AtomicInteger(0);
+    private int errorsCount; //private final AtomicInteger inputErrorsCount = new AtomicInteger(0);
+    private boolean wordWrong; //private final AtomicBoolean wrongWord = new AtomicBoolean(false);
+    private int wrongCharPos; //private final AtomicInteger wrongCharPos = new AtomicInteger(-1);
+    private int maxLenRightWord; //private final AtomicInteger maxLenRightWord = new AtomicInteger(-1);
     private ChangeListener<String> inputCharsListener;
 
     @FXML
@@ -68,8 +66,6 @@ public class GamePaneController {
         }
         initGameVar();
 
-
-
 //        resultsTable.
         inputCharsListener = this::listenInputChars;
 
@@ -80,12 +76,12 @@ public class GamePaneController {
 
     private void initGameVar() {
         gameOver.setValue(false);
-        currentWordNum.set(0);
-        inputCharsCount.set(0);
-        inputErrorsCount.set(0);
-        wrongWord.set(false);
-        wrongCharPos.set(-1);
-        maxLenRightWord.set(0);
+        wordWrong = false; //wrongWord.set(false);
+        currentWordNum = 0; //currentWordNum.set(0);
+        inputCharsCount = 0; //inputCharsCount.set(0);
+        errorsCount = 0; //inputErrorsCount.set(0);
+        maxLenRightWord = 0; //maxLenRightWord.set(0);
+        wrongCharPos = -1; //wrongCharPos.set(-1);
 
         chCnt.setText("0");
         errCnt.setText("0");
@@ -99,42 +95,45 @@ public class GamePaneController {
         System.out.println(oldWord + " -> " + newWord);
 
         int lastCharPos = newWord.length() - 1;
-        String currentWord = words.get(currentWordNum.get());
+        String currentWord = words.get(currentWordNum);
 
-        if (!wrongWord.get()) {
+        if (!wordWrong) {
             if (currentWord.startsWith(newWord)) {
-                if (newWord.length() > maxLenRightWord.get()) {
-                    inputCharsCount.incrementAndGet();
-                    maxLenRightWord.incrementAndGet();
+                if (newWord.length() > maxLenRightWord) {
+                    ++inputCharsCount;
+                    ++maxLenRightWord;
 
-                    chCnt.setText(inputCharsCount.toString());
+                    chCnt.setText(Integer.toString(inputCharsCount));
 
                     if (currentWord.equals(newWord)) {
                         // TODO Correct exceptions
                         input.clear();
 
-                        maxLenRightWord.set(0);
+                        maxLenRightWord = 0;
 
-                        if (currentWordNum.get() == words.size() - 1) {
-                            System.out.println(words.get(currentWordNum.get()) + " --> END");
+                        if (currentWordNum == words.size() - 1) {
+                            System.out.println(words.get(currentWordNum) + " --> END");
+
                             gameOver.set(true);
                         } else {
-                            System.out.println(words.get(currentWordNum.get()) + " --> " +
-                                    words.get(currentWordNum.incrementAndGet()));
+                            System.out.println(words.get(currentWordNum) + " --> " +
+                                    words.get(currentWordNum + 1));
+
+                            ++currentWordNum;
                         }
                     }
                 }
             } else {
-                wrongWord.set(true);
-                inputErrorsCount.incrementAndGet();
-                wrongCharPos.set(lastCharPos);
+                wordWrong = true;
+                ++errorsCount;
+                wrongCharPos = lastCharPos;
 
-                errCnt.setText(inputErrorsCount.toString());
+                errCnt.setText(Integer.toString(errorsCount));
             }
         } else {
-            if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos.get()) {
-                wrongWord.set(false);
-                wrongCharPos.set(-1);
+            if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos) {
+                wordWrong = false;
+                wrongCharPos = -1;
             }
         }
     }

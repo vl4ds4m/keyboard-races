@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 
-class Player {
+public class Player {
     private final String serverAddress;
     private final int serverPort;
     private String text;

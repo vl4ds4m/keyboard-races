@@ -4,16 +4,9 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 public class Server {
-    private static final String TEXTS_DIR = "/Texts/";
-    private static final List<String> TEXTS = List.of(/*"email-text.txt", "hello.txt",*/ "example.txt");
-    private static boolean serverAlive = true;
-
     public static void main(String[] args) {
         int port = 8888;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -21,8 +14,29 @@ public class Server {
             System.out.println("Address: " + serverSocket.getInetAddress().getHostAddress());
             System.out.println("Port: " + port);
 
-            Thread gameSessionHandler = new Thread(() -> handleGameSession(serverSocket));
-            gameSessionHandler.start();
+            // This thread creates new gameSessions
+            Thread playerReceiver = new Thread(() -> {
+                try {
+                    GameSession gameSession = null;
+                    int gameSessionNum = 0;
+                    int playersNum = 0;
+                    while (!Thread.currentThread().isInterrupted()) {
+                        Socket playerSocket = serverSocket.accept();
+
+                        if (gameSession == null || gameSession.getPlayersNum() == 3) {
+                            gameSession = new GameSession();
+                            ++gameSessionNum;
+                        }
+                        gameSession.addPlayer(playerSocket);
+                        ++playersNum;
+                        System.out.println("New player: " + playersNum + ", gameSession: " + gameSessionNum);
+                    }
+                } catch (SocketException ignored) {
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            playerReceiver.start();
 
             Scanner scanner = new Scanner(System.in);
             String response;
@@ -31,32 +45,11 @@ public class Server {
                 response = scanner.nextLine();
             } while (!response.equals("exit"));
 
-            serverAlive = false;
+            playerReceiver.interrupt();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             System.out.println("Game server has been turned off.");
-        }
-    }
-
-    private static void handleGameSession(ServerSocket serverSocket) {
-        while (serverAlive) {
-            try (Socket socket = serverSocket.accept();
-                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream())) {
-
-                int textNumber = (new Random()).nextInt(TEXTS.size());
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(
-                        Server.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNumber)))))) {
-
-                    String text = reader.readLine();
-                    outputStream.writeObject(text);
-                    outputStream.flush();
-                }
-            } catch (SocketException e) {
-                break;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 }

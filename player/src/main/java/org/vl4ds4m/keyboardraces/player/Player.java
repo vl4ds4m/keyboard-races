@@ -33,7 +33,7 @@ public class Player {
                 ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
 
                 while (true) {
-                    System.out.println(data);
+                    writer.reset();
                     writer.writeObject(data);
                     writer.flush();
 
@@ -42,9 +42,10 @@ public class Player {
                     for (int i = 0; i < playersDataList.size(); ++i) {
                         if (playersDataList.get(i) == null) {
                             playersDataList.set(i, newList.get(i));
-                        } else{
+                        } else {
                             playersDataList.get(i).updateInputValues(newList.get(i));
                         }
+                        //playersDataList.set(i, newList.get(i));
                     }
 
                     Thread.sleep(1000);

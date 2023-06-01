@@ -40,9 +40,9 @@ class GameSession {
 
                 while (true) {
                     PlayerData playerData = (PlayerData) reader.readObject();
-                    System.out.println(playerData);
                     playersDataList.set(playerNum, playerData);
 
+                    writer.reset();
                     writer.writeObject(playersDataList);
                     writer.flush();
                 }

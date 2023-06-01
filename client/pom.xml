@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>17.0.7</version>
+            <version>${javafx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.vl4ds4m.keyboardraces</groupId>

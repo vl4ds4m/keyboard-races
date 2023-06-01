@@ -1,5 +1,9 @@
 package org.vl4ds4m.keyboardraces.player;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,9 +13,10 @@ import java.util.List;
 
 public class Player {
     private final PlayerData data;
-    private String text = "";
-    private boolean textReceivedValue = false;
-    private List<PlayerData> playersDataList;
+    private final SimpleStringProperty text = new SimpleStringProperty("");
+    private final ObservableList<PlayerData> playersDataList =
+            FXCollections.observableArrayList(Collections.nCopies(3, null));
+    private int playerNum;
 
     public Player(String name) {
         data = new PlayerData(name);
@@ -21,22 +26,30 @@ public class Player {
         new Thread(() -> {
             try (Socket socket = new Socket(serverAddress, serverPort)) {
                 ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
-                //ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
 
-                text = (String) reader.readObject();
-                textReceivedValue = true;
-                int playerNum = reader.readInt();
+                text.setValue((String) reader.readObject());
+                playerNum = reader.readInt();
 
-                /*while (true) {
+                ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
+
+                while (true) {
+                    System.out.println(data);
                     writer.writeObject(data);
                     writer.flush();
 
-                    playersDataList = (List<PlayerData>) reader.readObject();
-                    data.updateInputValues(playersDataList.get(playerNum));
+                    List<PlayerData> newList = (List<PlayerData>) reader.readObject();
+
+                    for (int i = 0; i < playersDataList.size(); ++i) {
+                        if (playersDataList.get(i) == null) {
+                            playersDataList.set(i, newList.get(i));
+                        } else{
+                            playersDataList.get(i).updateInputValues(newList.get(i));
+                        }
+                    }
 
                     Thread.sleep(1000);
-                }*/
-            } catch (IOException | ClassNotFoundException e) {
+                }
+            } catch (IOException | ClassNotFoundException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }).start();
@@ -46,15 +59,12 @@ public class Player {
         return data;
     }
 
-    public List<PlayerData> getPlayersDataList() {
-        return Collections.unmodifiableList(playersDataList);
+    public ObservableList<PlayerData> getPlayersDataList() {
+        return FXCollections.unmodifiableObservableList(playersDataList);
     }
 
-    public boolean textReceived() {
-        return textReceivedValue;
-    }
 
-    public String getText() {
+    public SimpleStringProperty getText() {
         return text;
     }
 }

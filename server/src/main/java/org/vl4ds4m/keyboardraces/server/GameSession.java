@@ -9,13 +9,15 @@ import java.util.*;
 class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
     private static final List<String> TEXTS = List.of("email-text.txt", "hello.txt", "example.txt");
-    private final List<PlayerData> playersDataList = new ArrayList<>(Collections.nCopies(3, null));
+    private final List<PlayerData> playersDataList =
+            new ArrayList<>(Collections.nCopies(3, new PlayerData("noname")));
     private int playersCount = 0;
     private final int textNum = (new Random()).nextInt(TEXTS.size());
 
-    public synchronized void addPlayer(Socket playerSocket) {
+    public void addPlayer(Socket playerSocket) {
         if (playersCount < 3) {
-            new Thread(() -> handlePlayerRequests(playerSocket, playersCount)).start();
+            int playerNum = playersCount;
+            new Thread(() -> handlePlayerRequests(playerSocket, playerNum)).start();
             ++playersCount;
         } else {
             throw new RuntimeException("Players count must be <= 3.");
@@ -24,7 +26,6 @@ class GameSession {
 
     private void handlePlayerRequests(Socket socket, int playerNum) {
         try (socket) {
-            //ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
             ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
 
             try (BufferedReader textReader = new BufferedReader(new InputStreamReader(
@@ -35,15 +36,18 @@ class GameSession {
                 writer.writeInt(playerNum);
                 writer.flush();
 
-                /*while (true) {
+                ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
+
+                while (true) {
                     PlayerData playerData = (PlayerData) reader.readObject();
+                    System.out.println(playerData);
                     playersDataList.set(playerNum, playerData);
 
                     writer.writeObject(playersDataList);
                     writer.flush();
-                }*/
+                }
             }
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

@@ -5,5 +5,7 @@ import org.vl4ds4m.keyboardraces.player.PlayerData;
 public class PlayerResult {
     private PlayerData playerData;
 
+    public void convertDataToResult() {
 
+    }
 }

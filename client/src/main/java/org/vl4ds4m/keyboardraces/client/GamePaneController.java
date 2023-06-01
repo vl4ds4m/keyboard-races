@@ -1,13 +1,18 @@
 package org.vl4ds4m.keyboardraces.client;
 
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import org.vl4ds4m.keyboardraces.player.Player;
+import org.vl4ds4m.keyboardraces.player.PlayerData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +24,7 @@ public class GamePaneController {
     @FXML
     private TextField input;
     @FXML
-    private ListView<PlayerResult> resultsTable;
+    private ListView<PlayerData> resultsTable;
 
     @FXML
     private void initialize() {
@@ -28,14 +33,11 @@ public class GamePaneController {
 
     @FXML
     private void clickStartButton() {
-        if (player.textReceived()) {
-            text.setText(player.getText());
-            text.setDisable(false);
-            input.requestFocus();
-            playGame();
-        } else {
-            System.out.println("Text hasn't been received yet!");
-        }
+        resultsTable.setItems(player.getPlayersDataList());
+        text.textProperty().bind(player.getText());
+        text.setDisable(false);
+        input.requestFocus();
+        playGame();
     }
 
     static void createPlayer(String name, String serverAddress, int serverPort) {
@@ -46,18 +48,18 @@ public class GamePaneController {
     private static Player player;
     private List<String> words;
     private final SimpleBooleanProperty gameOver = new SimpleBooleanProperty(false);
-    private int currentWordNum; //private final AtomicInteger currentWordNum = new AtomicInteger(0);
-    private int inputCharsCount; //private final AtomicInteger inputCharsCount = new AtomicInteger(0);
-    private int errorsCount; //private final AtomicInteger inputErrorsCount = new AtomicInteger(0);
-    private boolean wordWrong; //private final AtomicBoolean wrongWord = new AtomicBoolean(false);
-    private int wrongCharPos; //private final AtomicInteger wrongCharPos = new AtomicInteger(-1);
-    private int maxLenRightWord; //private final AtomicInteger maxLenRightWord = new AtomicInteger(-1);
-    private ChangeListener<String> inputCharsListener;
+    //private static SimpleIntegerProperty inputCharsCount; //private final AtomicInteger inputCharsCount = new AtomicInteger(0);
+    //private static SimpleIntegerProperty errorsCount; //private final AtomicInteger inputErrorsCount = new AtomicInteger(0);
+    private static int currentWordNum; //private final AtomicInteger currentWordNum = new AtomicInteger(0);
+    private static boolean wordWrong; //private final AtomicBoolean wrongWord = new AtomicBoolean(false);
+    private static int wrongCharPos; //private final AtomicInteger wrongCharPos = new AtomicInteger(-1);
+    private static int maxLenRightWord; //private final AtomicInteger maxLenRightWord = new AtomicInteger(-1);
+    private static ChangeListener<String> inputCharsListener;
 
-    @FXML
+    /*@FXML
     private Label chCnt;
     @FXML
-    private Label errCnt;
+    private Label errCnt;*/
 
     private void playGame() {
         words = new ArrayList<>(List.of(text.getText().split(" ")));
@@ -78,13 +80,13 @@ public class GamePaneController {
         gameOver.setValue(false);
         wordWrong = false; //wrongWord.set(false);
         currentWordNum = 0; //currentWordNum.set(0);
-        inputCharsCount = 0; //inputCharsCount.set(0);
-        errorsCount = 0; //inputErrorsCount.set(0);
+        player.getData().setInputCharsCount(0); //inputCharsCount.set(0);
+        player.getData().setErrorsCount(0); //inputErrorsCount.set(0);
         maxLenRightWord = 0; //maxLenRightWord.set(0);
         wrongCharPos = -1; //wrongCharPos.set(-1);
 
-        chCnt.setText("0");
-        errCnt.setText("0");
+        //chCnt.setText("0");
+        //errCnt.setText("0");
     }
 
     // TODO Lock ctrl+V and selection text
@@ -100,10 +102,10 @@ public class GamePaneController {
         if (!wordWrong) {
             if (currentWord.startsWith(newWord)) {
                 if (newWord.length() > maxLenRightWord) {
-                    ++inputCharsCount;
+                    player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
                     ++maxLenRightWord;
 
-                    chCnt.setText(Integer.toString(inputCharsCount));
+                    //chCnt.setText(Integer.toString(inputCharsCount));
 
                     if (currentWord.equals(newWord)) {
                         // TODO Correct exceptions
@@ -125,10 +127,10 @@ public class GamePaneController {
                 }
             } else {
                 wordWrong = true;
-                ++errorsCount;
+                player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
                 wrongCharPos = lastCharPos;
 
-                errCnt.setText(Integer.toString(errorsCount));
+                //errCnt.setText(Integer.toString(errorsCount));
             }
         } else {
             if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos) {

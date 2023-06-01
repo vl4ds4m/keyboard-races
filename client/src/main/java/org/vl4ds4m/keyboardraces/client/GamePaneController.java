@@ -5,7 +5,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import org.vl4ds4m.keyboardraces.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,19 +16,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class GamePaneController {
-    static Player player;
     @FXML
     private Label text;
     @FXML
     private TextField input;
-
-    static void createPlayer(String serverAddress, int serverPort) {
-        player = new Player(serverAddress, serverPort);
-    }
-
-    static void connectToServer() {
-        player.connectToServer();
-    }
+    @FXML
+    private ListView<PlayerResult> resultsTable;
 
     @FXML
     private void initialize() {
@@ -39,12 +34,18 @@ public class GamePaneController {
             text.setText(player.getText());
             text.setDisable(false);
             input.requestFocus();
-            writeTextManually(player.getText());
+            playGame();
         } else {
             System.out.println("Text hasn't been received yet!");
         }
     }
 
+    static void createPlayer(String name, String serverAddress, int serverPort) {
+        player = new Player(name);
+        player.connectToServer(serverAddress, serverPort);
+    }
+
+    private static Player player;
     private List<String> words;
     private final SimpleBooleanProperty gameOver = new SimpleBooleanProperty(false);
     private final AtomicInteger currentWordNum = new AtomicInteger(0);
@@ -60,11 +61,24 @@ public class GamePaneController {
     @FXML
     private Label errCnt;
 
-    private void writeTextManually(String originalText) {
-        words = new ArrayList<>(List.of(originalText.split(" ")));
+    private void playGame() {
+        words = new ArrayList<>(List.of(text.getText().split(" ")));
         for (int i = 0; i < words.size() - 1; ++i) {
             words.set(i, words.get(i) + " ");
         }
+        initGameVar();
+
+
+
+//        resultsTable.
+        inputCharsListener = this::listenInputChars;
+
+        input.textProperty().addListener(inputCharsListener);
+
+        gameOver.addListener(this::listenGameOver);
+    }
+
+    private void initGameVar() {
         gameOver.setValue(false);
         currentWordNum.set(0);
         inputCharsCount.set(0);
@@ -75,12 +89,6 @@ public class GamePaneController {
 
         chCnt.setText("0");
         errCnt.setText("0");
-
-        inputCharsListener = this::listenInputChars;
-
-        input.textProperty().addListener(inputCharsListener);
-
-        gameOver.addListener(this::listenGameOver);
     }
 
     // TODO Lock ctrl+V and selection text

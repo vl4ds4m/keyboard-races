@@ -13,17 +13,17 @@ public class LoginPaneController {
     @FXML
     private Button startButton;
     @FXML
-    private TextField servAddrTextField;
+    private TextField playerName;
     @FXML
-    private TextField servPortTextField;
+    private TextField serverAddress;
     @FXML
-    private TextField userNameTextField;
+    private TextField serverPort;
 
     @FXML
     private void initialize() {
-        startButton.disableProperty().bind(servAddrTextField.textProperty().isEmpty());
-        startButton.disableProperty().bind(servPortTextField.textProperty().isEmpty());
-        startButton.disableProperty().bind(userNameTextField.textProperty().isEmpty());
+        startButton.disableProperty().bind(serverAddress.textProperty().isEmpty());
+        startButton.disableProperty().bind(serverPort.textProperty().isEmpty());
+        startButton.disableProperty().bind(playerName.textProperty().isEmpty());
     }
 
     @FXML
@@ -33,9 +33,10 @@ public class LoginPaneController {
             Stage stage = (Stage) startButton.getScene().getWindow();
             Main.setStageParams(stage, gamePane, "Keyboard Races - Game");
 
-            GamePaneController.createPlayer(servAddrTextField.getText(),
-                    Integer.parseInt(servPortTextField.getText()));
-            GamePaneController.connectToServer();
+            GamePaneController.createPlayer(
+                    playerName.getText(),
+                    serverAddress.getText(),
+                    Integer.parseInt(serverPort.getText()));
 
             stage.close();
             stage.show();

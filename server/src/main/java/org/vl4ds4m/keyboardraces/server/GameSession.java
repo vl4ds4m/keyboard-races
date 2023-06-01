@@ -1,45 +1,54 @@
 package org.vl4ds4m.keyboardraces.server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
+import org.vl4ds4m.keyboardraces.player.PlayerData;
+
+import java.io.*;
 import java.net.Socket;
 import java.util.*;
 
 class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
     private static final List<String> TEXTS = List.of("email-text.txt", "hello.txt", "example.txt");
-    private final List<Socket> playersData = new ArrayList<>();
-    private int playersNum = 0;
+    private final List<PlayerData> playersDataList = new ArrayList<>(Collections.nCopies(3, null));
+    private int playersCount = 0;
     private final int textNum = (new Random()).nextInt(TEXTS.size());
 
-    public int getPlayersNum() {
-        return playersNum;
-    }
-
-    public void addPlayer(Socket playerSocket) {
-        if (playersNum < 3) {
-            ++playersNum;
-        new Thread(() -> handlePlayerRequests(playerSocket)).start();
+    public synchronized void addPlayer(Socket playerSocket) {
+        if (playersCount < 3) {
+            new Thread(() -> handlePlayerRequests(playerSocket, playersCount)).start();
+            ++playersCount;
         } else {
             throw new RuntimeException("Players count must be <= 3.");
         }
     }
 
-    private void handlePlayerRequests(Socket socket) {
-        try (socket;
-             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream())) {
+    private void handlePlayerRequests(Socket socket, int playerNum) {
+        try (socket) {
+            //ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
 
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(
-                    Server.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))))) {
+            try (BufferedReader textReader = new BufferedReader(new InputStreamReader(
+                    Objects.requireNonNull(Server.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))))) {
 
-                String text = reader.readLine();
-                outputStream.writeObject(text);
-                outputStream.flush();
+                String text = textReader.readLine();
+                writer.writeObject(text);
+                writer.writeInt(playerNum);
+                writer.flush();
+
+                /*while (true) {
+                    PlayerData playerData = (PlayerData) reader.readObject();
+                    playersDataList.set(playerNum, playerData);
+
+                    writer.writeObject(playersDataList);
+                    writer.flush();
+                }*/
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public int getPlayersCount() {
+        return playersCount;
     }
 }

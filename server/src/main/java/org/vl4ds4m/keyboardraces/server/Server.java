@@ -23,7 +23,7 @@ public class Server {
                     while (!Thread.currentThread().isInterrupted()) {
                         Socket playerSocket = serverSocket.accept();
 
-                        if (gameSession == null || gameSession.getPlayersNum() == 3) {
+                        if (gameSession == null || gameSession.getPlayersCount() == 3) {
                             gameSession = new GameSession();
                             ++gameSessionNum;
                         }

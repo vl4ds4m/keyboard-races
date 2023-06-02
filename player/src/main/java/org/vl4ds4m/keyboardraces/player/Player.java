@@ -40,12 +40,12 @@ public class Player {
                     List<PlayerData> newList = (List<PlayerData>) reader.readObject();
 
                     for (int i = 0; i < playersDataList.size(); ++i) {
-                        if (playersDataList.get(i) == null) {
+                        /*if (playersDataList.get(i) == null) {
                             playersDataList.set(i, newList.get(i));
                         } else {
                             playersDataList.get(i).updateInputValues(newList.get(i));
-                        }
-                        //playersDataList.set(i, newList.get(i));
+                        }*/
+                        playersDataList.set(i, newList.get(i));
                     }
 
                     Thread.sleep(1000);
@@ -61,7 +61,7 @@ public class Player {
     }
 
     public ObservableList<PlayerData> getPlayersDataList() {
-        return FXCollections.unmodifiableObservableList(playersDataList);
+        return playersDataList;
     }
 
 

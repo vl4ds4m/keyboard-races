@@ -3,7 +3,6 @@ package org.vl4ds4m.keyboardraces.client;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -30,7 +29,7 @@ public class GamePaneController {
 
     @FXML
     private void clickStartButton() {
-        // resultsTable.setItems(player.getPlayersDataList());
+        resultsTable.setItems(player.getPlayersDataList());
         text.textProperty().bind(player.getText());
         text.setDisable(false);
         input.requestFocus();
@@ -53,11 +52,6 @@ public class GamePaneController {
 
     private void playGame() {
         initGameVar();
-
-        player.getPlayersDataList().addListener((ListChangeListener<PlayerData>) change ->
-                resultsTable.setItems(player.getPlayersDataList()));
-
-//        resultsTable.
 
         inputCharsListener = this::listenInputChars;
         input.textProperty().addListener(inputCharsListener);

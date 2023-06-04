@@ -3,10 +3,10 @@ package org.vl4ds4m.keyboardraces.player;
 import java.io.Serializable;
 
 public class PlayerData implements Serializable {
+    private final String name;
     private volatile int inputCharsCount = 0;
     private volatile int errorsCount = 0;
     private volatile boolean connected = true;
-    private final String name;
 
     public PlayerData(String name) {
         this.name = name;

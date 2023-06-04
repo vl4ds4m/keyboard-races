@@ -23,7 +23,7 @@ public class Server {
                     while (!Thread.currentThread().isInterrupted()) {
                         Socket playerSocket = serverSocket.accept();
 
-                        if (gameSession == null || gameSession.getPlayersCount() == 3) {
+                        if (gameSession == null || gameSession.gameLaunched()) {
                             gameSession = new GameSession();
                             ++gameSessionNum;
                         }
@@ -38,12 +38,10 @@ public class Server {
             });
             playerReceiver.start();
 
-            Scanner scanner = new Scanner(System.in);
-            String response;
             System.out.println("Enter 'exit' to close the server.");
-            do {
-                response = scanner.nextLine();
-            } while (!response.equals("exit"));
+            Scanner scanner = new Scanner(System.in);
+
+            while (!"exit".equals(scanner.nextLine()));
 
             playerReceiver.interrupt();
         } catch (IOException e) {

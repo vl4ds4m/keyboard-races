@@ -5,26 +5,23 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<GridPane maxHeight="720.0" maxWidth="900.0" minHeight="720.0" minWidth="900.0"
-          xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
-          fx:controller="org.vl4ds4m.keyboardraces.client.GamePaneController">
+<GridPane maxHeight="720.0" maxWidth="900.0" minHeight="720.0" minWidth="900.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.vl4ds4m.keyboardraces.client.GamePaneController">
 
     <columnConstraints>
-        <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0"/>
-        <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="300.0" minWidth="300.0"/>
+        <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" />
+        <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="300.0" minWidth="300.0" />
     </columnConstraints>
     <rowConstraints>
-        <RowConstraints maxHeight="200.0" minHeight="200.0" valignment="CENTER" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="300.0" prefHeight="300.0" valignment="CENTER" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="SOMETIMES"/>
+        <RowConstraints maxHeight="200.0" minHeight="200.0" valignment="CENTER" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="300.0" prefHeight="300.0" valignment="CENTER" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="SOMETIMES" />
     </rowConstraints>
 
     <StackPane>
 
-        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="150.0" stroke="BLACK" strokeType="INSIDE"
-                   width="500.0"/>
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="150.0" stroke="BLACK" strokeType="INSIDE" width="500.0" />
 
-        <ListView fx:id="resultsTable" focusTraversable="false" maxHeight="140.0" maxWidth="490.0"/>
+        <ListView fx:id="resultsTable" focusTraversable="false" maxHeight="140.0" maxWidth="490.0" />
 
         <!--<HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
 
@@ -47,23 +44,20 @@
 
     <StackPane layoutX="10.0" layoutY="10.0" GridPane.columnIndex="1">
 
-        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="150.0" stroke="BLACK" strokeType="INSIDE"
-                   width="200.0"/>
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="150.0" stroke="BLACK" strokeType="INSIDE" width="200.0" />
         <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0">
-            <Label alignment="CENTER" text="Timer"/>
-            <Button onAction="#clickStartButton" text="Start"/>
+            <Label alignment="CENTER" text="Timer" />
+            <Button onAction="#clickStartButton" text="Start" />
         </VBox>
 
     </StackPane>
 
     <StackPane layoutX="610.0" layoutY="10.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
 
-        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="350.0" stroke="BLACK" strokeType="INSIDE"
-                   width="800.0"/>
-        <Label fx:id="text" alignment="CENTER" disable="true" lineSpacing="4.0" maxHeight="300.0" maxWidth="750.0"
-               text="TEXT" wrapText="true">
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="350.0" stroke="BLACK" strokeType="INSIDE" width="800.0" />
+        <Label fx:id="text" alignment="CENTER" disable="true" lineSpacing="4.0" maxHeight="300.0" maxWidth="750.0" text="TEXT" wrapText="true">
             <font>
-                <Font size="16.0"/>
+                <Font size="16.0" />
             </font>
         </Label>
 
@@ -71,12 +65,11 @@
 
     <StackPane layoutX="610.0" layoutY="10.0" GridPane.columnSpan="2" GridPane.rowIndex="2">
 
-        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="50.0" stroke="BLACK" strokeType="INSIDE"
-                   width="800.0"/>
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="50.0" stroke="BLACK" strokeType="INSIDE" width="800.0" />
 
         <TextField fx:id="input" maxWidth="750.0" promptText="Input">
             <font>
-                <Font size="16.0"/>
+                <Font size="16.0" />
             </font>
         </TextField>
 

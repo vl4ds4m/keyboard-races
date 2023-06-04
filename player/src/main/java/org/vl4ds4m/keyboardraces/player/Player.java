@@ -1,5 +1,6 @@
 package org.vl4ds4m.keyboardraces.player;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,13 +25,14 @@ public class Player {
 
     public void connectToServer(String serverAddress, int serverPort) {
         new Thread(() -> {
-            try (Socket socket = new Socket(serverAddress, serverPort)) {
-                ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
+            try (Socket socket = new Socket(serverAddress, serverPort);
+                 ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
+                 ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream())) {
 
-                text.setValue((String) reader.readObject());
+                String textObject = (String) reader.readObject();
                 playerNum = reader.readInt();
 
-                ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
+                Platform.runLater(() -> text.setValue(textObject));
 
                 while (true) {
                     writer.reset();
@@ -39,14 +41,11 @@ public class Player {
 
                     List<PlayerData> newList = (List<PlayerData>) reader.readObject();
 
-                    for (int i = 0; i < playersDataList.size(); ++i) {
-                        /*if (playersDataList.get(i) == null) {
+                    Platform.runLater(() -> {
+                        for (int i = 0; i < newList.size(); ++i) {
                             playersDataList.set(i, newList.get(i));
-                        } else {
-                            playersDataList.get(i).updateInputValues(newList.get(i));
-                        }*/
-                        playersDataList.set(i, newList.get(i));
-                    }
+                        }
+                    });
 
                     Thread.sleep(1000);
                 }

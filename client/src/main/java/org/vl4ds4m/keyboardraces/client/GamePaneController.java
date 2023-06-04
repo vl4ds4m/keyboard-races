@@ -24,31 +24,31 @@ public class GamePaneController {
 
     @FXML
     private void initialize() {
+        LoginPaneController.PlayerSettings playerSettings = LoginPaneController.getPlayerSettings();
+
+        player = new Player(playerSettings.name());
+        player.connectToServer(playerSettings.serverAddress(), playerSettings.serverPort());
+
+        text.textProperty().bind(player.getText());
         input.disableProperty().bind(text.disableProperty());
     }
 
     @FXML
     private void clickStartButton() {
-        resultsTable.setItems(player.getPlayersDataList());
-        text.textProperty().bind(player.getText());
         text.setDisable(false);
         input.requestFocus();
+        resultsTable.setItems(player.getPlayersDataList());
         playGame();
     }
 
-    private static Player player;
-    private static List<String> words;
-    private static final SimpleBooleanProperty gameOver = new SimpleBooleanProperty();
-    private static int currentWordNum;
-    private static boolean wordWrong;
-    private static int wrongCharPos;
-    private static int maxLenRightWord;
-    private static ChangeListener<String> inputCharsListener;
-
-    static void createPlayer(String name, String serverAddress, int serverPort) {
-        player = new Player(name);
-        player.connectToServer(serverAddress, serverPort);
-    }
+    private Player player;
+    private List<String> words;
+    private final SimpleBooleanProperty gameOver = new SimpleBooleanProperty();
+    private int currentWordNum;
+    private boolean wordWrong;
+    private int wrongCharPos;
+    private int maxLenRightWord;
+    private ChangeListener<String> inputCharsListener;
 
     private void playGame() {
         initGameVar();
@@ -84,6 +84,7 @@ public class GamePaneController {
             ObservableValue<? extends String> observableWord,
             String oldWord,
             String newWord) {
+
         for (int i = 0; i < player.getPlayersDataList().size(); ++i) {
             System.out.println("i: " + player.getPlayersDataList().get(i));
         }

@@ -11,45 +11,37 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class GameSession {
+public class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
     private static final List<String> TEXTS = List.of(/*"email-text.txt",*/ "hello.txt", "example.txt");
-    private static final int GAME_DURATION = 10;
-    private static final int TIMEOUT = 5_000;
+    private static final int MAX_PLAYERS_COUNT = 3;
+    private static final int GAME_DURATION = 60;
     private final List<PlayerData> playersDataList = new ArrayList<>();
-
     private final List<Socket> playersSockets = new ArrayList<>();
     private final int textNum = new Random().nextInt(TEXTS.size());
     private boolean gameLaunched = false;
 
-    public synchronized boolean gameLaunched() {
+    public int playersCount() {
+        return playersSockets.size();
+    }
+
+    public boolean gameLaunched() {
         return gameLaunched;
     }
 
-    public synchronized void addPlayer(Socket playerSocket) {
-        if (!gameLaunched) {
-            if (playersSockets.size() == 0) {
-                new Thread(new TimeoutGameLauncher()).start();
-            }
-
-            if (playersSockets.size() < 3) {
-                playersSockets.add(playerSocket);
-                playersDataList.add(null);
-            } else {
-                throw new RuntimeException("Players count must be <= 3.");
-            }
-
-            if (playersSockets.size() == 3) {
-                launchGame();
-            }
+    public void addPlayer(Socket playerSocket) {
+        if (playersSockets.size() < 3) {
+            playersSockets.add(playerSocket);
+            playersDataList.add(null);
+        } else {
+            throw new RuntimeException("Players count must be <= 3.");
         }
     }
 
-    private void launchGame() {
+    public void launchGame() {
         gameLaunched = true;
 
-        ExecutorService playersRequestsExecutor = Executors.newFixedThreadPool(3);
-
+        ExecutorService playersRequestsExecutor = Executors.newFixedThreadPool(MAX_PLAYERS_COUNT);
         for (int i = 0; i < playersSockets.size(); ++i) {
             playersRequestsExecutor.execute(new PlayerRequestsHandler(playersSockets.get(i), i));
         }
@@ -71,24 +63,36 @@ class GameSession {
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
             try (socket;
-                 ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream())) {
+                 ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
+                 ObjectInputStream reader = new ObjectInputStream(socket.getInputStream())) {
 
                 executorService.execute(new PlayerGameInitializer(writer));
+                executorService.schedule(() -> {
+                    try {
+                        writer.writeObject(Protocol.START);
+                        writer.flush();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }, 5, TimeUnit.SECONDS);
 
-                try (ObjectInputStream reader = new ObjectInputStream(socket.getInputStream())) {
-                    PlayerGameUpdater playerGameUpdater = new PlayerGameUpdater(reader, writer);
-                    executorService.scheduleAtFixedRate(playerGameUpdater, 5, 1, TimeUnit.SECONDS);
+                Thread.sleep(5_100);
 
-                    while (true) {
-                        synchronized (lock) {
-                            if (remainTime == 0) {
-                                executorService.shutdown();
-                                break;
-                            }
-                            lock.wait();
+                executorService.scheduleAtFixedRate(new PlayerGameUpdater(reader, writer),
+                        0, 1, TimeUnit.SECONDS);
+
+                while (true) {
+                    synchronized (lock) {
+                        if (remainTime == 0) {
+                            executorService.shutdown();
+                            break;
                         }
+                        lock.wait();
                     }
                 }
+
+                writer.writeObject(Protocol.STOP);
+                writer.flush();
             } catch (IOException | InterruptedException e) {
                 playersDataList.get(playerNum).setConnected(false);
                 throw new RuntimeException(e);
@@ -105,8 +109,8 @@ class GameSession {
             @Override
             public void run() {
                 try (BufferedReader textReader = new BufferedReader(new InputStreamReader(
-                        Objects.requireNonNull(Server.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))))) {
-
+                        Objects.requireNonNull(Server.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))
+                ))) {
                     String text = textReader.readLine();
                     writer.writeObject(Protocol.TEXT);
                     writer.writeObject(text);
@@ -133,6 +137,9 @@ class GameSession {
             @Override
             public void run() {
                 try {
+                    writer.writeObject(Protocol.DATA);
+                    writer.flush();
+
                     PlayerData playerData = (PlayerData) reader.readObject();
                     playersDataList.set(playerNum, playerData);
 
@@ -143,33 +150,17 @@ class GameSession {
 
                     writer.writeObject(Protocol.TIME);
                     writer.writeInt(remainTime);
+
                     --remainTime;
 
                     writer.flush();
-
                 } catch (IOException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
-                }
-
-                synchronized (lock) {
-                    notify();
-                }
-            }
-        }
-    }
-
-    private class TimeoutGameLauncher implements Runnable {
-        @Override
-        public void run() {
-            try {
-                Thread.sleep(TIMEOUT);
-                synchronized (GameSession.this) {
-                    if (!gameLaunched && playersSockets.size() < 3) {
-                        launchGame();
+                } finally {
+                    synchronized (lock) {
+                        lock.notify();
                     }
                 }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
         }
     }

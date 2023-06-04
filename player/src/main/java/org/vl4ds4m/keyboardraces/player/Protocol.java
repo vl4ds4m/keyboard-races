@@ -1,9 +1,13 @@
 package org.vl4ds4m.keyboardraces.player;
 
-public enum Protocol {
+import java.io.Serializable;
+
+public enum Protocol implements Serializable {
     TEXT,
     PLAYER_NUM,
     TIME,
     DATA,
-    DATA_LIST
+    DATA_LIST,
+    START,
+    STOP
 }

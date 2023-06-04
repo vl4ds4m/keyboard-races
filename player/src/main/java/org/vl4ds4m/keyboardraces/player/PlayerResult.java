@@ -14,10 +14,6 @@ public class PlayerResult {
         return data;
     }
 
-    public boolean currentPlayer() {
-        return currentPlayer;
-    }
-
     public void setCurrentPlayer(boolean currentPlayer) {
         this.currentPlayer = currentPlayer;
     }

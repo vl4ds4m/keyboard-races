@@ -38,48 +38,35 @@ public class GamePaneController {
 
         text.textProperty().bind(player.getText());
         input.disableProperty().bind(text.disableProperty());
-    }
-
-    @FXML
-    private void clickStartButton() {
-        text.setDisable(false);
-        input.requestFocus();
-
-        playersResults = player.getPlayersResultsList();
-        playersResults.addListener((ListChangeListener<PlayerResult>) change -> {
-            if (playersResults.size() >= 1) firstPlace.setText("1. " + playersResults.get(0));
-            else firstPlace.setText("");
-            if (playersResults.size() >= 2) secondPlace.setText("2. " + playersResults.get(1));
-            else secondPlace.setText("");
-            if (playersResults.size() >= 3) thirdPlace.setText("3. " + playersResults.get(2));
-            else thirdPlace.setText("");
+        gameState = player.getGameStateProperty();
+        gameState.addListener((observableValue, aBoolean, t1) -> {
+            if (t1) {
+                playGame();
+            } else {
+                text.setDisable(true);
+            }
         });
-
-        playGame();
     }
 
     private Player player;
     private ObservableList<PlayerResult> playersResults;
     private List<String> words;
-    private final SimpleBooleanProperty gameOver = new SimpleBooleanProperty();
+    private SimpleBooleanProperty gameState;
     private int currentWordNum;
     private boolean wordWrong;
     private int wrongCharPos;
     private int maxLenRightWord;
-    private ChangeListener<String> inputCharsListener;
 
     private void playGame() {
+        text.setDisable(false);
+        input.requestFocus();
+
         initGameVar();
 
-        inputCharsListener = this::listenInputChars;
-        input.textProperty().addListener(inputCharsListener);
+        playersResults = player.getPlayersResultsList();
+        playersResults.addListener(new ResultsListener());
 
-        gameOver.addListener((observableValue, oldValue, newValue) -> {
-            if (newValue) {
-                input.textProperty().removeListener(inputCharsListener);
-                text.setDisable(true);
-            }
-        });
+        input.textProperty().addListener(new InputCharsListener());
     }
 
     private void initGameVar() {
@@ -88,7 +75,6 @@ public class GamePaneController {
             words.set(i, words.get(i) + " ");
         }
 
-        gameOver.set(false);
         wordWrong = false;
         currentWordNum = 0;
         player.getData().setInputCharsCount(0);
@@ -97,43 +83,63 @@ public class GamePaneController {
         wrongCharPos = -1;
     }
 
+    private class ResultsListener implements ListChangeListener<PlayerResult> {
+        @Override
+        public void onChanged(Change<? extends PlayerResult> change) {
+            if (playersResults.size() >= 1) {
+                firstPlace.setText("1. " + playersResults.get(0));
+            } else {
+                firstPlace.setText("");
+            }
+            if (playersResults.size() >= 2) {
+                secondPlace.setText("2. " + playersResults.get(1));
+            } else {
+                secondPlace.setText("");
+            }
+            if (playersResults.size() >= 3) {
+                thirdPlace.setText("3. " + playersResults.get(2));
+            } else {
+                thirdPlace.setText("");
+            }
+        }
+    }
+
     // TODO Lock ctrl+V and selection text
-    private void listenInputChars(
-            ObservableValue<? extends String> observableWord,
-            String oldWord,
-            String newWord) {
+    private class InputCharsListener implements ChangeListener<String> {
+        @Override
+        public void changed(ObservableValue<? extends String> observableWord, String oldWord, String newWord) {
+            System.out.println(oldWord + " -> " + newWord);
 
-        System.out.println(oldWord + " -> " + newWord);
+            int lastCharPos = newWord.length() - 1;
+            String currentWord = words.get(currentWordNum);
 
-        int lastCharPos = newWord.length() - 1;
-        String currentWord = words.get(currentWordNum);
+            if (!wordWrong) {
+                if (currentWord.startsWith(newWord)) {
+                    if (newWord.length() > maxLenRightWord) {
+                        player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
+                        ++maxLenRightWord;
 
-        if (!wordWrong) {
-            if (currentWord.startsWith(newWord)) {
-                if (newWord.length() > maxLenRightWord) {
-                    player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
-                    ++maxLenRightWord;
+                        if (currentWord.equals(newWord)) {
+                            maxLenRightWord = 0;
+                            if (currentWordNum == words.size() - 1) {
+                                gameState.set(false);
+                            } else {
+                                ++currentWordNum;
+                            }
 
-                    if (currentWord.equals(newWord)) {
-                        maxLenRightWord = 0;
-                        if (currentWordNum == words.size() - 1) {
-                            gameOver.set(true);
-                        } else {
-                            ++currentWordNum;
+                            Platform.runLater(() -> input.setText(""));
                         }
-
-                        Platform.runLater(() -> input.setText(""));
                     }
+                } else {
+                    wordWrong = true;
+                    player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
+                    wrongCharPos = lastCharPos;
                 }
             } else {
-                wordWrong = true;
-                player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
-                wrongCharPos = lastCharPos;
-            }
-        } else {
-            if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos) {
-                wordWrong = false;
-                wrongCharPos = -1;
+                if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos) {
+                    wordWrong = false;
+                    wrongCharPos = -1;
+                }
             }
         }
     }

@@ -1,14 +1,18 @@
 package org.vl4ds4m.keyboardraces.client;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import org.vl4ds4m.keyboardraces.player.Player;
-import org.vl4ds4m.keyboardraces.player.PlayerData;
+import org.vl4ds4m.keyboardraces.player.PlayerResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +24,12 @@ public class GamePaneController {
     @FXML
     private TextField input;
     @FXML
-    private ListView<PlayerData> resultsTable;
+    private Label firstPlace;
+    @FXML
+    private Label secondPlace;
+    @FXML
+    private Label thirdPlace;
+
 
     @FXML
     private void initialize() {
@@ -37,11 +46,22 @@ public class GamePaneController {
     private void clickStartButton() {
         text.setDisable(false);
         input.requestFocus();
-        resultsTable.setItems(player.getPlayersDataList());
+
+        playersResults = player.getPlayersResultsList();
+        playersResults.addListener((ListChangeListener<PlayerResult>) change -> {
+            if (playersResults.size() >= 1) firstPlace.setText("1. " + playersResults.get(0));
+            else firstPlace.setText("");
+            if (playersResults.size() >= 2) secondPlace.setText("2. " + playersResults.get(1));
+            else secondPlace.setText("");
+            if (playersResults.size() >= 3) thirdPlace.setText("3. " + playersResults.get(2));
+            else thirdPlace.setText("");
+        });
+
         playGame();
     }
 
     private Player player;
+    private ObservableList<PlayerResult> playersResults;
     private List<String> words;
     private final SimpleBooleanProperty gameOver = new SimpleBooleanProperty();
     private int currentWordNum;
@@ -85,9 +105,6 @@ public class GamePaneController {
             String oldWord,
             String newWord) {
 
-        for (int i = 0; i < player.getPlayersDataList().size(); ++i) {
-            System.out.println("i: " + player.getPlayersDataList().get(i));
-        }
         System.out.println(oldWord + " -> " + newWord);
 
         int lastCharPos = newWord.length() - 1;
@@ -100,15 +117,14 @@ public class GamePaneController {
                     ++maxLenRightWord;
 
                     if (currentWord.equals(newWord)) {
-                        input.setText(""); // TODO Correct exceptions
-
                         maxLenRightWord = 0;
-
                         if (currentWordNum == words.size() - 1) {
                             gameOver.set(true);
                         } else {
                             ++currentWordNum;
                         }
+
+                        Platform.runLater(() -> input.setText(""));
                     }
                 }
             } else {

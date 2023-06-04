@@ -8,7 +8,7 @@ import java.util.*;
 
 class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
-    private static final List<String> TEXTS = List.of("email-text.txt", "hello.txt", "example.txt");
+    private static final List<String> TEXTS = List.of(/*"email-text.txt",*/ "hello.txt", "example.txt");
     private static final int TIMEOUT = 5_000;
     private final List<PlayerData> playersDataList = new ArrayList<>();
 
@@ -71,6 +71,7 @@ class GameSession {
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
+            playersDataList.get(playerNum).setConnected(false);
             throw new RuntimeException(e);
         }
     }

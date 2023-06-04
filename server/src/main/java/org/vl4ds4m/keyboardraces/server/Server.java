@@ -41,7 +41,7 @@ public class Server {
             System.out.println("Enter 'exit' to close the server.");
             Scanner scanner = new Scanner(System.in);
 
-            while (!"exit".equals(scanner.nextLine()));
+            while (!"exit".equals(scanner.nextLine())) ;
 
             playerReceiver.interrupt();
         } catch (IOException e) {

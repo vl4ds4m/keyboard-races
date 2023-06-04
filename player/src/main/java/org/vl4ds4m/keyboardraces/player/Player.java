@@ -9,15 +9,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class Player {
     private final PlayerData data;
     private final SimpleStringProperty text = new SimpleStringProperty("");
-    private final ObservableList<PlayerData> playersDataList =
-            FXCollections.observableArrayList(Collections.nCopies(3, null));
-    private int playerNum;
+    private final ObservableList<PlayerResult> playersResultsList = FXCollections.observableArrayList();
 
     public Player(String name) {
         data = new PlayerData(name);
@@ -30,7 +30,7 @@ public class Player {
                  ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream())) {
 
                 String textObject = (String) reader.readObject();
-                playerNum = reader.readInt();
+                int playerId = reader.readInt();
 
                 Platform.runLater(() -> text.setValue(textObject));
 
@@ -39,17 +39,31 @@ public class Player {
                     writer.writeObject(data);
                     writer.flush();
 
-                    List<PlayerData> newList = (List<PlayerData>) reader.readObject();
+                    List<?> newDataList = (List<?>) reader.readObject();
+
+                    List<PlayerResult> newResultList = new ArrayList<>();
+                    for (int i = 0; i < newDataList.size(); ++i) {
+                        newResultList.add(new PlayerResult((PlayerData) newDataList.get(i)));
+                        if (i == playerId) {
+                            newResultList.get(i).setCurrentPlayer(true);
+                        }
+                    }
+                    newResultList.sort(PlayerResult.COMPARATOR);
 
                     Platform.runLater(() -> {
-                        for (int i = 0; i < newList.size(); ++i) {
-                            playersDataList.set(i, newList.get(i));
+                        for (int i = 0; i < newResultList.size(); ++i) {
+                            if (i == playersResultsList.size()) {
+                                playersResultsList.add(newResultList.get(i));
+                            } else {
+                                playersResultsList.set(i, newResultList.get(i));
+                            }
                         }
                     });
 
                     Thread.sleep(1000);
                 }
             } catch (IOException | ClassNotFoundException | InterruptedException e) {
+                data.setConnected(false);
                 throw new RuntimeException(e);
             }
         }).start();
@@ -59,8 +73,8 @@ public class Player {
         return data;
     }
 
-    public ObservableList<PlayerData> getPlayersDataList() {
-        return playersDataList;
+    public ObservableList<PlayerResult> getPlayersResultsList() {
+        return playersResultsList;
     }
 
 

@@ -4,9 +4,9 @@ import java.io.Serializable;
 
 public class PlayerData implements Serializable {
     private final String name;
-    private volatile int inputCharsCount = 0;
-    private volatile int errorsCount = 0;
-    private volatile boolean connected = true;
+    private int inputCharsCount = 0;
+    private int errorsCount = 0;
+    private boolean connected = true;
 
     public PlayerData(String name) {
         this.name = name;
@@ -38,16 +38,5 @@ public class PlayerData implements Serializable {
 
     public void setConnected(boolean connected) {
         this.connected = connected;
-    }
-
-    public void updateInputValues(PlayerData updatedData) {
-        this.inputCharsCount = updatedData.inputCharsCount;
-        this.errorsCount = updatedData.errorsCount;
-        this.connected = updatedData.connected;
-    }
-
-    @Override
-    public String toString() {
-        return name + ": " + inputCharsCount + " chars, " + this.errorsCount + " errors, activeStatus - " + connected;
     }
 }

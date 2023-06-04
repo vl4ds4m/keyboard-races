@@ -2,14 +2,12 @@ package org.vl4ds4m.keyboardraces.client;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import org.vl4ds4m.keyboardraces.player.Player;
 import org.vl4ds4m.keyboardraces.player.PlayerResult;

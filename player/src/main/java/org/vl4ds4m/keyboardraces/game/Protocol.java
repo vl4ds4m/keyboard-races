@@ -8,6 +8,7 @@ public enum Protocol implements Serializable {
     TIME,
     DATA,
     DATA_LIST,
+    READY,
     START,
     STOP
 }

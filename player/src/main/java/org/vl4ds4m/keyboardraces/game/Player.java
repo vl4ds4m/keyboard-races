@@ -65,7 +65,7 @@ public class Player {
                 while ((command = (Protocol) reader.readObject()) != Protocol.STOP) {
                     executeCommand(command, reader, writer);
                 }
-                Platform.runLater(() -> gameStartProperty.set(false));
+                Platform.runLater(() -> gameStopProperty.set(true));
 
             } catch (IOException | ClassNotFoundException e) {
                 data.setConnected(false);
@@ -87,6 +87,8 @@ public class Player {
             }
 
             case PLAYER_NUM -> playerId = reader.readInt();
+
+            case READY -> Platform.runLater(() -> gameReadyProperty.set(true));
 
             case START -> Platform.runLater(() -> gameStartProperty.set(true));
 

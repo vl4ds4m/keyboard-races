@@ -102,6 +102,13 @@ public class GameSession {
                 System.out.println(this + " INIT");
 
                 synchronized (this) {
+                    while (!gameReady) {
+                        updateGame(reader, writer);
+                        this.wait();
+                    }
+                    writer.writeObject(Protocol.READY);
+                    writer.flush();
+
                     while (!gameStarted) {
                         updateGame(reader, writer);
                         this.wait();

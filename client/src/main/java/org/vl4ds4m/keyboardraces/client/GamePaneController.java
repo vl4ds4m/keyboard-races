@@ -1,11 +1,9 @@
 package org.vl4ds4m.keyboardraces.client;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -42,72 +40,74 @@ public class GamePaneController {
 
         text.textProperty().bind(player.getText());
         input.disableProperty().bind(text.disableProperty());
-        timerDescr.setText("Игра начнется через:");
-        timer.textProperty().bind(player.getRemainTime());
+        timerDescr.setText("Ожидание игроков:");
+        timer.textProperty().bind(player.getRemainTimeProperty());
 
-        playersResults = player.getPlayersResultsList();
-        playersResults.addListener(new ResultsListener());
-
-        gameState = player.getGameStateProperty();
-        gameState.addListener((observableValue, aBoolean, t1) -> {
-            if (t1) {
-                playGame();
-            } else {
-                text.setDisable(true);
-                timerDescr.setText("Игра окончена");
-                timer.textProperty().unbind();
-                timer.setText("");
-            }
-        });
+        player.getPlayersResultsList().addListener(new ResultsListener());
+        player.getGameReadyProperty().addListener(
+                (observableValue, aBoolean, t1) -> timerDescr.setText("Игра начнется через:"));
+        player.getGameStartProperty().addListener(new StartGameListener());
+        player.getGameStopProperty().addListener(new StopGameListener());
     }
 
     private Player player;
-    private ObservableList<PlayerResult> playersResults;
     private List<String> words;
-    private SimpleBooleanProperty gameState;
     private int currentWordNum;
     private boolean wordWrong;
     private int wrongCharPos;
     private int maxLenRightWord;
 
-    private void playGame() {
-        text.setDisable(false);
-        input.requestFocus();
-        timerDescr.setText("Игра закончится через:");
-
-        words = new ArrayList<>(List.of(text.getText().split(" ")));
-        for (int i = 0; i < words.size() - 1; ++i) {
-            words.set(i, words.get(i) + " ");
-        }
-
-        wordWrong = false;
-        currentWordNum = 0;
-        player.getData().setInputCharsCount(0);
-        player.getData().setErrorsCount(0);
-        maxLenRightWord = 0;
-        wrongCharPos = -1;
-
-        input.textProperty().addListener(new InputCharsListener());
-    }
-
     private class ResultsListener implements ListChangeListener<PlayerResult> {
         @Override
         public void onChanged(Change<? extends PlayerResult> change) {
-            if (playersResults.size() >= 1) {
-                firstPlace.setText("1. " + playersResults.get(0));
+            if (player.getPlayersResultsList().size() >= 1) {
+                firstPlace.setText("1. " + player.getPlayersResultsList().get(0));
             } else {
                 firstPlace.setText("");
             }
-            if (playersResults.size() >= 2) {
-                secondPlace.setText("2. " + playersResults.get(1));
+            if (player.getPlayersResultsList().size() >= 2) {
+                secondPlace.setText("2. " + player.getPlayersResultsList().get(1));
             } else {
                 secondPlace.setText("");
             }
-            if (playersResults.size() >= 3) {
-                thirdPlace.setText("3. " + playersResults.get(2));
+            if (player.getPlayersResultsList().size() >= 3) {
+                thirdPlace.setText("3. " + player.getPlayersResultsList().get(2));
             } else {
                 thirdPlace.setText("");
             }
+        }
+    }
+
+    private class StartGameListener implements ChangeListener<Boolean> {
+        @Override
+        public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
+            text.setDisable(false);
+            input.requestFocus();
+            timerDescr.setText("Игра закончится через:");
+
+            words = new ArrayList<>(List.of(text.getText().split(" ")));
+            for (int i = 0; i < words.size() - 1; ++i) {
+                words.set(i, words.get(i) + " ");
+            }
+
+            wordWrong = false;
+            currentWordNum = 0;
+            player.getData().setInputCharsCount(0);
+            player.getData().setErrorsCount(0);
+            maxLenRightWord = 0;
+            wrongCharPos = -1;
+
+            input.textProperty().addListener(new InputCharsListener());
+        }
+    }
+
+    private class StopGameListener implements ChangeListener<Boolean> {
+        @Override
+        public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
+            text.setDisable(true);
+            timerDescr.setText("Игра окончена");
+            timer.textProperty().unbind();
+            timer.setText("");
         }
     }
 
@@ -129,7 +129,7 @@ public class GamePaneController {
                         if (currentWord.equals(newWord)) {
                             maxLenRightWord = 0;
                             if (currentWordNum == words.size() - 1) {
-                                gameState.set(false);
+                                player.getGameStopProperty().set(true);
                             } else {
                                 ++currentWordNum;
                             }

@@ -18,8 +18,10 @@ public class Player {
     private int playerId = -1;
     private final SimpleStringProperty text = new SimpleStringProperty("");
     private final ObservableList<PlayerResult> playersResultsList = FXCollections.observableArrayList();
-    private final SimpleBooleanProperty gameActive = new SimpleBooleanProperty(false);
-    private final SimpleStringProperty remainTime = new SimpleStringProperty();
+    private final SimpleBooleanProperty gameReadyProperty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty gameStartProperty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty gameStopProperty = new SimpleBooleanProperty(false);
+    private final SimpleStringProperty remainTimeProperty = new SimpleStringProperty();
 
     public Player(String name) {
         data = new PlayerData(name);
@@ -37,12 +39,20 @@ public class Player {
         return text;
     }
 
-    public SimpleBooleanProperty getGameStateProperty() {
-        return gameActive;
+    public SimpleBooleanProperty getGameReadyProperty() {
+        return gameReadyProperty;
     }
 
-    public SimpleStringProperty getRemainTime() {
-        return remainTime;
+    public SimpleBooleanProperty getGameStartProperty() {
+        return gameStartProperty;
+    }
+
+    public SimpleBooleanProperty getGameStopProperty() {
+        return gameStopProperty;
+    }
+
+    public SimpleStringProperty getRemainTimeProperty() {
+        return remainTimeProperty;
     }
 
     public void connectToServer(String serverAddress, int serverPort) {
@@ -55,7 +65,7 @@ public class Player {
                 while ((command = (Protocol) reader.readObject()) != Protocol.STOP) {
                     executeCommand(command, reader, writer);
                 }
-                Platform.runLater(() -> gameActive.set(false));
+                Platform.runLater(() -> gameStartProperty.set(false));
 
             } catch (IOException | ClassNotFoundException e) {
                 data.setConnected(false);
@@ -78,11 +88,11 @@ public class Player {
 
             case PLAYER_NUM -> playerId = reader.readInt();
 
-            case START -> Platform.runLater(() -> gameActive.set(true));
+            case START -> Platform.runLater(() -> gameStartProperty.set(true));
 
             case TIME -> {
                 String time = String.valueOf(reader.readInt());
-                Platform.runLater(() -> remainTime.set(time));
+                Platform.runLater(() -> remainTimeProperty.set(time));
             }
 
             case DATA -> {

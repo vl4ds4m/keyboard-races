@@ -10,7 +10,7 @@
 
     <TextField fx:id="serverAddress" promptText="Server address" text="localhost"/>
 
-    <TextField fx:id="serverPort" promptText="Port" text="8888"/>
+    <TextField fx:id="serverPort" promptText="Port" text="5619"/>
 
     <TextField fx:id="playerName" promptText="Your name" text="Vladidas"/>
 

@@ -8,9 +8,24 @@ import java.util.*;
 
 public class Server {
     private static final int TIMEOUT = 3_000;
+    private static final int DEFAULT_PORT = 5619;
 
     public static void main(String[] args) {
-        int port = 8888;
+        if (args.length == 1) {
+            try {
+                int port = Integer.parseInt(args[0]);
+                launch(port);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid argument.");
+            }
+        } else if (args.length == 0) {
+            launch(DEFAULT_PORT);
+        } else {
+            System.out.println("Invalid arguments count.");
+        }
+    }
+
+    private static void launch(int port) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Game server has been launched.");
             System.out.println("Address: " + serverSocket.getInetAddress().getHostAddress());

@@ -3,7 +3,7 @@ module org.vl4ds4m.keyboardraces.client {
     requires javafx.controls;
     requires javafx.fxml;
 
-    requires org.vl4ds4m.keyboardraces.player;
+    requires org.vl4ds4m.keyboardraces.game;
 
     opens org.vl4ds4m.keyboardraces.client to javafx.graphics, javafx.fxml;
 }

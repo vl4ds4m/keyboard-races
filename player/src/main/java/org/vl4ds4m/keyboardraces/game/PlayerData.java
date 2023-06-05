@@ -1,4 +1,4 @@
-package org.vl4ds4m.keyboardraces.player;
+package org.vl4ds4m.keyboardraces.game;
 
 import java.io.Serializable;
 

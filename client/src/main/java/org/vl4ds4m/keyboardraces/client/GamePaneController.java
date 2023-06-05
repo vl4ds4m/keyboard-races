@@ -9,8 +9,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import org.vl4ds4m.keyboardraces.player.Player;
-import org.vl4ds4m.keyboardraces.player.PlayerResult;
+import org.vl4ds4m.keyboardraces.game.Player;
+import org.vl4ds4m.keyboardraces.game.PlayerResult;
 
 import java.util.ArrayList;
 import java.util.List;

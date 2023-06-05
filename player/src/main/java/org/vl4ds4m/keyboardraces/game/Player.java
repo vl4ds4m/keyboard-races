@@ -1,4 +1,4 @@
-package org.vl4ds4m.keyboardraces.player;
+package org.vl4ds4m.keyboardraces.game;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;

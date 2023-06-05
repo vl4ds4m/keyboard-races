@@ -1,7 +1,7 @@
 package org.vl4ds4m.keyboardraces.server;
 
-import org.vl4ds4m.keyboardraces.player.PlayerData;
-import org.vl4ds4m.keyboardraces.player.Protocol;
+import org.vl4ds4m.keyboardraces.game.PlayerData;
+import org.vl4ds4m.keyboardraces.game.Protocol;
 
 import java.io.*;
 import java.net.Socket;

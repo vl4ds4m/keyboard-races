@@ -7,7 +7,6 @@ import java.net.SocketException;
 import java.util.*;
 
 public class Server {
-    private static final int TIMEOUT = 3_000;
     private static final int DEFAULT_PORT = 5619;
 
     public static void main(String[] args) {
@@ -50,49 +49,22 @@ public class Server {
     }
 
     private record PlayersAcceptor(ServerSocket serverSocket) implements Runnable {
-        private static final Object LOCK = new Object();
-
         @Override
         public void run() {
             try {
-                GameSession gameSession = null;
-
+                GameSession gameSession = new GameSession();
                 while (!Thread.currentThread().isInterrupted()) {
                     Socket playerSocket = serverSocket.accept();
 
-                    synchronized (LOCK) {
-                        if (gameSession == null || gameSession.gameLaunched()) {
-                            gameSession = new GameSession();
-                            new Thread(new TimeoutGameLauncher(gameSession)).start();
-                        }
-
+                    if (!gameSession.addPlayer(playerSocket)) {
+                        gameSession = new GameSession();
                         gameSession.addPlayer(playerSocket);
-
-                        if (gameSession.playersCount() == 3) {
-                            gameSession.launchGame();
-                        }
                     }
                 }
             } catch (SocketException e) {
                 System.out.println("ServerSocket has been closed.");
             } catch (IOException e) {
                 throw new RuntimeException(e);
-            }
-        }
-
-        private record TimeoutGameLauncher(GameSession gameSession) implements Runnable {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(TIMEOUT);
-                    synchronized (LOCK) {
-                        if (!gameSession.gameLaunched()) {
-                            gameSession.launchGame();
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
             }
         }
     }

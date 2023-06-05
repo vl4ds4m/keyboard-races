@@ -15,7 +15,8 @@ public class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
     private static final List<String> TEXTS = List.of(/*"email-text.txt",*/ "hello.txt", "example.txt");
     private static final int MAX_PLAYERS_COUNT = 3;
-    private static final int GAME_DURATION = 60;
+    private static final int GAME_DURATION = 5;
+    private static final int COUNTDOWN = 3_000;
     private final List<PlayerData> playersDataList = new ArrayList<>();
     private final List<Socket> playersSockets = new ArrayList<>();
     private final int textNum = new Random().nextInt(TEXTS.size());
@@ -45,6 +46,8 @@ public class GameSession {
         for (int i = 0; i < playersSockets.size(); ++i) {
             playersRequestsExecutor.execute(new PlayerRequestsHandler(playersSockets.get(i), i));
         }
+
+        playersRequestsExecutor.shutdown();
     }
 
     private class PlayerRequestsHandler implements Runnable {
@@ -60,31 +63,25 @@ public class GameSession {
 
         @Override
         public void run() {
-            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
             try (socket;
                  ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
                  ObjectInputStream reader = new ObjectInputStream(socket.getInputStream())) {
 
-                executorService.execute(new PlayerGameInitializer(writer));
-                executorService.schedule(() -> {
-                    try {
-                        writer.writeObject(Protocol.START);
-                        writer.flush();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }, 5, TimeUnit.SECONDS);
+                initializePlayerGame(writer);
 
-                Thread.sleep(5_100);
+                Thread.sleep(COUNTDOWN);
 
-                executorService.scheduleAtFixedRate(new PlayerGameUpdater(reader, writer),
+                writer.writeObject(Protocol.START);
+                writer.flush();
+
+                ScheduledExecutorService playerRequestsExecutor = Executors.newSingleThreadScheduledExecutor();
+                playerRequestsExecutor.scheduleAtFixedRate(new PlayerGameUpdater(reader, writer),
                         0, 1, TimeUnit.SECONDS);
 
                 while (true) {
                     synchronized (lock) {
                         if (remainTime == 0) {
-                            executorService.shutdown();
+                            playerRequestsExecutor.shutdown();
                             break;
                         }
                         lock.wait();
@@ -99,29 +96,18 @@ public class GameSession {
             }
         }
 
-        private class PlayerGameInitializer implements Runnable {
-            private final ObjectOutputStream writer;
+        private void initializePlayerGame(ObjectOutputStream writer) throws IOException {
+            try (BufferedReader textReader = new BufferedReader(new InputStreamReader(
+                    Objects.requireNonNull(Server.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))
+            ))) {
+                String text = textReader.readLine();
+                writer.writeObject(Protocol.TEXT);
+                writer.writeObject(text);
 
-            private PlayerGameInitializer(ObjectOutputStream writer) {
-                this.writer = writer;
-            }
+                writer.writeObject(Protocol.PLAYER_NUM);
+                writer.writeInt(playerNum);
 
-            @Override
-            public void run() {
-                try (BufferedReader textReader = new BufferedReader(new InputStreamReader(
-                        Objects.requireNonNull(Server.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))
-                ))) {
-                    String text = textReader.readLine();
-                    writer.writeObject(Protocol.TEXT);
-                    writer.writeObject(text);
-
-                    writer.writeObject(Protocol.PLAYER_NUM);
-                    writer.writeInt(playerNum);
-
-                    writer.flush();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                writer.flush();
             }
         }
 

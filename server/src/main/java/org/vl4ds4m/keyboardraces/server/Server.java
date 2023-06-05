@@ -16,50 +16,58 @@ public class Server {
             System.out.println("Address: " + serverSocket.getInetAddress().getHostAddress());
             System.out.println("Port: " + port);
 
-            Thread playerAcceptor = new Thread(() -> {
-                try {
-                    GameSession gameSession = new GameSession();
-
-                    while (!Thread.currentThread().isInterrupted()) {
-                        Socket playerSocket = serverSocket.accept();
-
-                        synchronized (gameSession) {
-                            gameSession.addPlayer(playerSocket);
-                            if (gameSession.playersCount() == 1) {
-                                new Thread(new TimeoutGameLauncher(gameSession)).start();
-                            } else if (gameSession.playersCount() == 3) {
-                                gameSession.launchGame();
-                                gameSession = new GameSession();
-                            }
-                        }
-                    }
-                } catch (SocketException e) {
-                    System.out.println("ServerSocket has been closed.");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            playerAcceptor.start();
+            Thread playersAcceptor = new Thread(new PlayersAcceptor(serverSocket));
+            playersAcceptor.start();
 
             System.out.println("Enter 'exit' to close the server.");
             Scanner scanner = new Scanner(System.in);
 
-            while (!"exit".equals(scanner.nextLine())) ;
-
-            playerAcceptor.interrupt();
+            while (scanner.hasNextLine()) {
+                if (scanner.nextLine().equals("exit")) {
+                    break;
+                }
+            }
+            playersAcceptor.interrupt();
+            System.out.println("Game server has been turned off.");
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } finally {
-            System.out.println("Game server has been turned off.");
         }
     }
 
-    private record TimeoutGameLauncher(GameSession gameSession) implements Runnable {
+    private record PlayersAcceptor(ServerSocket serverSocket) implements Runnable {
+        private static final Object LOCK = new Object();
+
         @Override
+        public void run() {
+            try {
+                GameSession gameSession = new GameSession();
+
+                while (!Thread.currentThread().isInterrupted()) {
+                    Socket playerSocket = serverSocket.accept();
+
+                    synchronized (LOCK) {
+                        gameSession.addPlayer(playerSocket);
+                        if (gameSession.playersCount() == 1) {
+                            new Thread(new TimeoutGameLauncher(gameSession)).start();
+                        } else if (gameSession.playersCount() == 3) {
+                            gameSession.launchGame();
+                            gameSession = new GameSession();
+                        }
+                    }
+                }
+            } catch (SocketException e) {
+                System.out.println("ServerSocket has been closed.");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private record TimeoutGameLauncher(GameSession gameSession) implements Runnable {
+            @Override
             public void run() {
                 try {
                     Thread.sleep(TIMEOUT);
-                    synchronized (gameSession) {
+                    synchronized (LOCK) {
                         if (!gameSession.gameLaunched()) {
                             gameSession.launchGame();
                         }
@@ -69,4 +77,5 @@ public class Server {
                 }
             }
         }
+    }
 }

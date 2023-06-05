@@ -18,6 +18,7 @@ public class Player {
     private final SimpleStringProperty text = new SimpleStringProperty("");
     private final ObservableList<PlayerResult> playersResultsList = FXCollections.observableArrayList();
     private final SimpleBooleanProperty gameActive = new SimpleBooleanProperty(false);
+    private final SimpleStringProperty remainTime = new SimpleStringProperty();
 
     public Player(String name) {
         data = new PlayerData(name);
@@ -39,6 +40,10 @@ public class Player {
         return gameActive;
     }
 
+    public SimpleStringProperty getRemainTime() {
+        return remainTime;
+    }
+
     public void connectToServer(String serverAddress, int serverPort) {
         new Thread(() -> {
             try (Socket socket = new Socket(serverAddress, serverPort);
@@ -47,7 +52,6 @@ public class Player {
 
                 Protocol command;
                 int playerId = -1;
-                int remainTime = -1;
 
                 while ((command = (Protocol) reader.readObject()) != Protocol.STOP) {
                     switch (command) {
@@ -60,7 +64,10 @@ public class Player {
 
                         case START -> Platform.runLater(() -> gameActive.set(true));
 
-                        case TIME -> remainTime = reader.readInt();
+                        case TIME -> {
+                            String time = String.valueOf(reader.readInt());
+                            Platform.runLater(() -> remainTime.set(time));
+                        }
 
                         case DATA -> {
                             writer.reset();

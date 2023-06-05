@@ -15,8 +15,8 @@ public class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
     private static final List<String> TEXTS = List.of(/*"email-text.txt",*/ "hello.txt", "example.txt");
     private static final int MAX_PLAYERS_COUNT = 3;
+    private static final int COUNTDOWN = 3;
     private static final int GAME_DURATION = 5;
-    private static final int COUNTDOWN = 3_000;
     private final List<PlayerData> playersDataList = new ArrayList<>();
     private final List<Socket> playersSockets = new ArrayList<>();
     private final int textNum = new Random().nextInt(TEXTS.size());
@@ -33,7 +33,7 @@ public class GameSession {
     public void addPlayer(Socket playerSocket) {
         if (playersSockets.size() < 3) {
             playersSockets.add(playerSocket);
-            playersDataList.add(null);
+            playersDataList.add(new PlayerData("Noname"));
         } else {
             throw new RuntimeException("Players count must be <= 3.");
         }
@@ -54,7 +54,7 @@ public class GameSession {
         private final Socket socket;
         private final int playerNum;
         private final Object lock = new Object();
-        private int remainTime = GAME_DURATION;
+        private int remainTime;
 
         private PlayerRequestsHandler(Socket socket, int playerNum) {
             this.socket = socket;
@@ -69,27 +69,40 @@ public class GameSession {
 
                 initializePlayerGame(writer);
 
-                Thread.sleep(COUNTDOWN);
-
-                writer.writeObject(Protocol.START);
-                writer.flush();
-
                 ScheduledExecutorService playerRequestsExecutor = Executors.newSingleThreadScheduledExecutor();
-                playerRequestsExecutor.scheduleAtFixedRate(new PlayerGameUpdater(reader, writer),
-                        0, 1, TimeUnit.SECONDS);
+                PlayerGameUpdater playerGameUpdater = new PlayerGameUpdater(reader, writer);
 
+                remainTime = COUNTDOWN;
+                playerRequestsExecutor.scheduleAtFixedRate(playerGameUpdater, 0, 1, TimeUnit.SECONDS);
+
+                boolean gameStarted = false;
                 while (true) {
                     synchronized (lock) {
-                        if (remainTime == 0) {
-                            playerRequestsExecutor.shutdown();
-                            break;
+                        if (remainTime < 0) {
+                            if (!gameStarted) {
+                                gameStarted = true;
+
+                                playerRequestsExecutor.shutdown();
+                                playerRequestsExecutor = Executors.newSingleThreadScheduledExecutor();
+
+                                writer.writeObject(Protocol.START);
+                                writer.flush();
+
+                                remainTime = GAME_DURATION;
+                                playerRequestsExecutor.scheduleAtFixedRate(playerGameUpdater,
+                                        0, 1, TimeUnit.SECONDS);
+                            } else {
+                                playerRequestsExecutor.shutdown();
+
+                                writer.writeObject(Protocol.STOP);
+                                writer.flush();
+
+                                break;
+                            }
                         }
                         lock.wait();
                     }
                 }
-
-                writer.writeObject(Protocol.STOP);
-                writer.flush();
             } catch (IOException | InterruptedException e) {
                 playersDataList.get(playerNum).setConnected(false);
                 throw new RuntimeException(e);
@@ -122,28 +135,28 @@ public class GameSession {
 
             @Override
             public void run() {
-                try {
-                    writer.writeObject(Protocol.DATA);
-                    writer.flush();
+                synchronized (lock) {
+                    try {
+                        writer.writeObject(Protocol.DATA);
+                        writer.flush();
 
-                    PlayerData playerData = (PlayerData) reader.readObject();
-                    playersDataList.set(playerNum, playerData);
+                        PlayerData playerData = (PlayerData) reader.readObject();
+                        playersDataList.set(playerNum, playerData);
 
-                    writer.reset();
+                        writer.reset();
 
-                    writer.writeObject(Protocol.DATA_LIST);
-                    writer.writeObject(playersDataList);
+                        writer.writeObject(Protocol.DATA_LIST);
+                        writer.writeObject(playersDataList);
 
-                    writer.writeObject(Protocol.TIME);
-                    writer.writeInt(remainTime);
+                        writer.writeObject(Protocol.TIME);
+                        writer.writeInt(remainTime);
 
-                    --remainTime;
+                        --remainTime;
 
-                    writer.flush();
-                } catch (IOException | ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    synchronized (lock) {
+                        writer.flush();
+                    } catch (IOException | ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    } finally {
                         lock.notify();
                     }
                 }

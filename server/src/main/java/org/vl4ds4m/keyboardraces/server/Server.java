@@ -7,7 +7,7 @@ import java.net.SocketException;
 import java.util.*;
 
 public class Server {
-    private static final int TIMEOUT = 1_000;
+    private static final int TIMEOUT = 3_000;
 
     public static void main(String[] args) {
         int port = 8888;
@@ -40,18 +40,21 @@ public class Server {
         @Override
         public void run() {
             try {
-                GameSession gameSession = new GameSession();
+                GameSession gameSession = null;
 
                 while (!Thread.currentThread().isInterrupted()) {
                     Socket playerSocket = serverSocket.accept();
 
                     synchronized (LOCK) {
-                        gameSession.addPlayer(playerSocket);
-                        if (gameSession.playersCount() == 1) {
-                            new Thread(new TimeoutGameLauncher(gameSession)).start();
-                        } else if (gameSession.playersCount() == 3) {
-                            gameSession.launchGame();
+                        if (gameSession == null || gameSession.gameLaunched()) {
                             gameSession = new GameSession();
+                            new Thread(new TimeoutGameLauncher(gameSession)).start();
+                        }
+
+                        gameSession.addPlayer(playerSocket);
+
+                        if (gameSession.playersCount() == 3) {
+                            gameSession.launchGame();
                         }
                     }
                 }

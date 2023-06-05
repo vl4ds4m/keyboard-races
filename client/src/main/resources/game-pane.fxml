@@ -31,19 +31,19 @@
                     <Insets left="10.0" top="10.0"/>
                 </padding>
 
-                <Label fx:id="firstPlace">
+                <Label fx:id="firstPlace" text="1st place">
                     <font>
                         <Font size="16.0"/>
                     </font>
                 </Label>
 
-                <Label fx:id="secondPlace">
+                <Label fx:id="secondPlace" text="2nd place">
                     <font>
                         <Font size="16.0"/>
                     </font>
                 </Label>
 
-                <Label fx:id="thirdPlace">
+                <Label fx:id="thirdPlace" text="3rd place">
                     <font>
                         <Font size="16.0"/>
                     </font>
@@ -57,8 +57,21 @@
 
         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="150.0" stroke="BLACK" strokeType="INSIDE"
                    width="200.0"/>
+
         <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0">
-            <Label alignment="CENTER" text="Timer"/>
+
+            <Label alignment="CENTER" text="TimerDescr" fx:id="timerDescr">
+                <font>
+                    <Font size="15.0"/>
+                </font>
+            </Label>
+
+            <Label text="Timer" fx:id="timer">
+                <font>
+                    <Font size="16.0"/>
+                </font>
+            </Label>
+
         </VBox>
 
     </StackPane>

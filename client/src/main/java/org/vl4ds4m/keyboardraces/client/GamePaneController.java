@@ -22,6 +22,10 @@ public class GamePaneController {
     @FXML
     private TextField input;
     @FXML
+    private Label timer;
+    @FXML
+    private Label timerDescr;
+    @FXML
     private Label firstPlace;
     @FXML
     private Label secondPlace;
@@ -38,12 +42,21 @@ public class GamePaneController {
 
         text.textProperty().bind(player.getText());
         input.disableProperty().bind(text.disableProperty());
+        timerDescr.setText("Игра начнется через:");
+        timer.textProperty().bind(player.getRemainTime());
+
+        playersResults = player.getPlayersResultsList();
+        playersResults.addListener(new ResultsListener());
+
         gameState = player.getGameStateProperty();
         gameState.addListener((observableValue, aBoolean, t1) -> {
             if (t1) {
                 playGame();
             } else {
                 text.setDisable(true);
+                timerDescr.setText("Игра окончена");
+                timer.textProperty().unbind();
+                timer.setText("");
             }
         });
     }
@@ -60,16 +73,8 @@ public class GamePaneController {
     private void playGame() {
         text.setDisable(false);
         input.requestFocus();
+        timerDescr.setText("Игра закончится через:");
 
-        initGameVar();
-
-        playersResults = player.getPlayersResultsList();
-        playersResults.addListener(new ResultsListener());
-
-        input.textProperty().addListener(new InputCharsListener());
-    }
-
-    private void initGameVar() {
         words = new ArrayList<>(List.of(text.getText().split(" ")));
         for (int i = 0; i < words.size() - 1; ++i) {
             words.set(i, words.get(i) + " ");
@@ -81,6 +86,8 @@ public class GamePaneController {
         player.getData().setErrorsCount(0);
         maxLenRightWord = 0;
         wrongCharPos = -1;
+
+        input.textProperty().addListener(new InputCharsListener());
     }
 
     private class ResultsListener implements ListChangeListener<PlayerResult> {

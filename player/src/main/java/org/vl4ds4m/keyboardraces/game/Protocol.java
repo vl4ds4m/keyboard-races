@@ -4,9 +4,10 @@ import java.io.Serializable;
 
 public enum Protocol implements Serializable {
     TEXT,
+    NEED_NAME,
     PLAYER_NUM,
     TIME,
-    DATA,
+    NEED_COUNTS,
     DATA_LIST,
     READY,
     START,

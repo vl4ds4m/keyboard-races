@@ -10,14 +10,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
     private final PlayerData data;
-    private int playerId = -1;
+    private int playerNum = -1;
     private final SimpleStringProperty text = new SimpleStringProperty("");
-    private final ObservableList<PlayerResult> playersResultsList = FXCollections.observableArrayList();
+    private final ObservableList<PlayerData> playerDataList = FXCollections.observableArrayList();
     private final SimpleBooleanProperty gameReadyProperty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty gameStartProperty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty gameStopProperty = new SimpleBooleanProperty(false);
@@ -31,8 +30,8 @@ public class Player {
         return data;
     }
 
-    public ObservableList<PlayerResult> getPlayersResultsList() {
-        return playersResultsList;
+    public ObservableList<PlayerData> getPlayerDataList() {
+        return playerDataList;
     }
 
     public SimpleStringProperty getText() {
@@ -86,7 +85,12 @@ public class Player {
                 Platform.runLater(() -> text.set(textObject));
             }
 
-            case PLAYER_NUM -> playerId = reader.readInt();
+            case NEED_NAME -> {
+                writer.writeObject(data.getName());
+                writer.flush();
+            }
+
+            case PLAYER_NUM -> playerNum = reader.readInt();
 
             case READY -> Platform.runLater(() -> gameReadyProperty.set(true));
 
@@ -97,30 +101,29 @@ public class Player {
                 Platform.runLater(() -> remainTimeProperty.set(time));
             }
 
-            case DATA -> {
-                writer.reset();
-                writer.writeObject(data);
+            case NEED_COUNTS -> {
+                writer.writeInt(data.getInputCharsCount());
+                writer.writeInt(data.getErrorsCount());
                 writer.flush();
             }
 
             case DATA_LIST -> {
-                List<?> newDataList = (List<?>) reader.readObject();
+                List<PlayerData> newPlayerDataList = (List<PlayerData>) reader.readObject();
 
-                List<PlayerResult> newResultList = new ArrayList<>();
-                for (int i = 0; i < newDataList.size(); ++i) {
-                    newResultList.add(new PlayerResult((PlayerData) newDataList.get(i)));
-                    if (i == playerId) {
-                        newResultList.get(i).setCurrentPlayer(true);
+                for (int i = 0; i < newPlayerDataList.size(); ++i) {
+                    if (i == playerNum) {
+                        newPlayerDataList.get(i).setCurrentPlayer(true);
                     }
                 }
-                newResultList.sort(PlayerResult.COMPARATOR);
+
+                newPlayerDataList.sort(PlayerData.COMPARATOR);
 
                 Platform.runLater(() -> {
-                    for (int i = 0; i < newResultList.size(); ++i) {
-                        if (i == playersResultsList.size()) {
-                            playersResultsList.add(newResultList.get(i));
+                    for (int i = 0; i < newPlayerDataList.size(); ++i) {
+                        if (i == playerDataList.size()) {
+                            playerDataList.add(newPlayerDataList.get(i));
                         } else {
-                            playersResultsList.set(i, newResultList.get(i));
+                            playerDataList.set(i, newPlayerDataList.get(i));
                         }
                     }
                 });

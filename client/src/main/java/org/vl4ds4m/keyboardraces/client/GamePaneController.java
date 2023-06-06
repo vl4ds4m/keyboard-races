@@ -8,7 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import org.vl4ds4m.keyboardraces.game.Player;
-import org.vl4ds4m.keyboardraces.game.PlayerResult;
+import org.vl4ds4m.keyboardraces.game.PlayerData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class GamePaneController {
         timerDescr.setText("Ожидание игроков:");
         timer.textProperty().bind(player.getRemainTimeProperty());
 
-        player.getPlayersResultsList().addListener(new ResultsListener());
+        player.getPlayerDataList().addListener(new ResultsListener());
         player.getGameReadyProperty().addListener(new ReadyGameListener());
         player.getGameStartProperty().addListener(new StartGameListener());
         player.getGameStopProperty().addListener(new StopGameListener());
@@ -55,21 +55,21 @@ public class GamePaneController {
     private int wrongCharPos;
     private int maxLenRightWord;
 
-    private class ResultsListener implements ListChangeListener<PlayerResult> {
+    private class ResultsListener implements ListChangeListener<PlayerData> {
         @Override
-        public void onChanged(Change<? extends PlayerResult> change) {
-            if (player.getPlayersResultsList().size() >= 1) {
-                firstPlace.setText("1. " + player.getPlayersResultsList().get(0));
+        public void onChanged(Change<? extends PlayerData> change) {
+            if (player.getPlayerDataList().size() >= 1) {
+                firstPlace.setText("1. " + player.getPlayerDataList().get(0));
             } else {
                 firstPlace.setText("");
             }
-            if (player.getPlayersResultsList().size() >= 2) {
-                secondPlace.setText("2. " + player.getPlayersResultsList().get(1));
+            if (player.getPlayerDataList().size() >= 2) {
+                secondPlace.setText("2. " + player.getPlayerDataList().get(1));
             } else {
                 secondPlace.setText("");
             }
-            if (player.getPlayersResultsList().size() >= 3) {
-                thirdPlace.setText("3. " + player.getPlayersResultsList().get(2));
+            if (player.getPlayerDataList().size() >= 3) {
+                thirdPlace.setText("3. " + player.getPlayerDataList().get(2));
             } else {
                 thirdPlace.setText("");
             }

@@ -22,18 +22,28 @@ public class GameSession {
     private final ExecutorService playersExecutor = Executors.newFixedThreadPool(MAX_PLAYERS_COUNT);
     private final GameHandler gameHandler = new GameHandler();
     private final List<PlayerHandler> handlers = new ArrayList<>();
-    private final List<PlayerData> playersDataList = new ArrayList<>();
-    private final int textNum = new Random().nextInt(TEXTS.size());
+    private final List<PlayerData> playerDataList = new ArrayList<>();
+    private final String text;
     private volatile boolean gameReady = false;
     private volatile boolean gameStarted = false;
     private volatile boolean gameStopped = false;
     private volatile int remainTime = AWAIT_TIME;
 
+    public GameSession() {
+        int textNum = new Random().nextInt(TEXTS.size());
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(
+                GameSession.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))))) {
+            text = reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public synchronized boolean addPlayer(Socket playerSocket) {
         if (!gameReady) {
             PlayerHandler handler = new PlayerHandler(playerSocket, handlers.size());
 
-            playersDataList.add(new PlayerData("Noname"));
+            //playerDataList.add(new PlayerData("Noname"));
             handlers.add(handler);
             playersExecutor.execute(handler);
 
@@ -98,7 +108,7 @@ public class GameSession {
                  ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
                  ObjectInputStream reader = new ObjectInputStream(socket.getInputStream())) {
 
-                initGame(writer);
+                initGame(reader, writer);
                 System.out.println(this + " INIT");
 
                 synchronized (this) {
@@ -125,23 +135,32 @@ public class GameSession {
                 }
             } catch (IOException | ClassNotFoundException | InterruptedException e) {
                 System.out.println(this + " DISCONNECT, message: " + e);
-                playersDataList.get(playerNum).setConnected(false);
+                synchronized (GameSession.this) {
+                    playerDataList.get(playerNum).setConnected(false);
+                }
             }
         }
 
-        private void initGame(ObjectOutputStream writer) throws IOException {
-            try (BufferedReader textReader = new BufferedReader(new InputStreamReader(
-                    Objects.requireNonNull(Server.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))
-            ))) {
-                String text = textReader.readLine();
-                writer.writeObject(Protocol.TEXT);
-                writer.writeObject(text);
+        private void initGame(
+                ObjectInputStream reader,
+                ObjectOutputStream writer
+        ) throws IOException, ClassNotFoundException {
 
-                writer.writeObject(Protocol.PLAYER_NUM);
-                writer.writeInt(playerNum);
+            writer.writeObject(Protocol.NEED_NAME);
+            writer.flush();
 
-                writer.flush();
+            String playerName = (String) reader.readObject();
+            synchronized (GameSession.this) {
+                playerDataList.add(new PlayerData(playerName));
             }
+
+            writer.writeObject(Protocol.TEXT);
+            writer.writeObject(text);
+
+            writer.writeObject(Protocol.PLAYER_NUM);
+            writer.writeInt(playerNum);
+
+            writer.flush();
         }
 
         private void updateGame(
@@ -149,16 +168,19 @@ public class GameSession {
                 ObjectOutputStream writer
         ) throws IOException, ClassNotFoundException {
 
-            writer.writeObject(Protocol.DATA);
+            writer.writeObject(Protocol.NEED_COUNTS);
             writer.flush();
 
-            PlayerData playerData = (PlayerData) reader.readObject();
-            playersDataList.set(playerNum, playerData);
-
-            writer.reset();
+            int inputCharsCount = reader.readInt();
+            int errorsCount = reader.readInt();
+            synchronized (GameSession.this) {
+                playerDataList.get(playerNum).setInputCharsCount(inputCharsCount);
+                playerDataList.get(playerNum).setErrorsCount(errorsCount);
+            }
 
             writer.writeObject(Protocol.DATA_LIST);
-            writer.writeObject(playersDataList);
+            writer.reset();
+            writer.writeObject(playerDataList);
 
             writer.writeObject(Protocol.TIME);
             writer.writeInt(remainTime);

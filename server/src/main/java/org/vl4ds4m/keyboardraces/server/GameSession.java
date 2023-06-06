@@ -60,7 +60,7 @@ public class GameSession {
             synchronized (GameSession.this) {
                 remainTime -= 1;
 
-                if (remainTime < 0) {
+                if (remainTime == 0) {
                     if (!gameReady) {
                         gameReady = true;
                         remainTime = COUNTDOWN_TIME;

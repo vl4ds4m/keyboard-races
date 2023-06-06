@@ -25,6 +25,7 @@ class Player implements Runnable {
     private final SimpleBooleanProperty gameStartProperty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty gameStopProperty = new SimpleBooleanProperty(false);
     private final SimpleStringProperty remainTimeProperty = new SimpleStringProperty();
+    private final SimpleStringProperty connectedProperty = new SimpleStringProperty("Connection");
 
     public Player(String name, String serverAddress, int serverPort) {
         data = new PlayerData(name);
@@ -61,6 +62,10 @@ class Player implements Runnable {
         return remainTimeProperty;
     }
 
+    public SimpleStringProperty getConnectedProperty() {
+        return connectedProperty;
+    }
+
     @Override
     public void run() {
         try (Socket socket = new Socket(serverAddress, serverPort);
@@ -73,9 +78,15 @@ class Player implements Runnable {
             }
             Platform.runLater(() -> gameStopProperty.set(true));
 
-        } catch (IOException | ClassNotFoundException e) {
-            data.setConnected(false);
-            System.err.println(e.getMessage());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            Platform.runLater(() -> {
+                if (e.getMessage() != null) {
+                    connectedProperty.set(e.getMessage());
+                } else {
+                    connectedProperty.set("Неизвестная ошибка.");
+                }
+            });
         }
     }
 

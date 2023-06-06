@@ -5,6 +5,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import org.vl4ds4m.keyboardraces.game.GameSettings;
@@ -29,7 +30,6 @@ public class GamePaneController {
 
     void createPlayer(String name, String serverAddress, int serverPort) {
         player = new Player(name, serverAddress, serverPort);
-        new Thread(player).start();
 
         input.disableProperty().bind(text.disableProperty());
         timer.textProperty().bind(player.getRemainTimeProperty());
@@ -38,6 +38,9 @@ public class GamePaneController {
         player.getGameReadyProperty().addListener(new ReadyGameListener());
         player.getGameStartProperty().addListener(new StartGameListener());
         player.getGameStopProperty().addListener(new StopGameListener());
+        player.getConnectedProperty().addListener(new ConnectionListener());
+
+        new Thread(player).start();
     }
 
     private List<String> words;
@@ -45,6 +48,16 @@ public class GamePaneController {
     private boolean wordWrong;
     private int wrongCharPos;
     private int maxLenRightWord;
+
+    private static class ConnectionListener implements ChangeListener<String> {
+        @Override
+        public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Соединение с сервером потеряно.");
+            alert.setContentText("Причина: " + t1);
+            alert.show();
+        }
+    }
 
     private class ResultsListener implements ListChangeListener<PlayerData> {
         @Override

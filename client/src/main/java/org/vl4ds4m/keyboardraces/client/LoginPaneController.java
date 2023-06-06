@@ -28,29 +28,25 @@ public class LoginPaneController {
 
     @FXML
     private void clickStartButton() {
+        FXMLLoader gameLoader;
+        Pane gamePane;
+
         try {
-            playerSettings = new PlayerSettings(
-                    playerName.getText(),
-                    serverAddress.getText(),
-                    Integer.parseInt(serverPort.getText()));
-
-            Pane gamePane = FXMLLoader.load(Main.getURL("/game-pane.fxml"));
-            Stage stage = (Stage) startButton.getScene().getWindow();
-            Main.setStageParams(stage, gamePane);
-
-            stage.close();
-            stage.show();
+            gameLoader = new FXMLLoader(Main.getURL("/game-pane.fxml"));
+            gamePane = gameLoader.load();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
 
-    record PlayerSettings(String name, String serverAddress, int serverPort) {
-    }
+        ((GamePaneController) gameLoader.getController()).createPlayer(
+                playerName.getText(),
+                serverAddress.getText(),
+                Integer.parseInt(serverPort.getText()));
 
-    private static PlayerSettings playerSettings;
+        Stage stage = (Stage) startButton.getScene().getWindow();
+        Main.setStageParams(stage, gamePane);
 
-    static PlayerSettings getPlayerSettings() {
-        return playerSettings;
+        stage.close();
+        stage.show();
     }
 }

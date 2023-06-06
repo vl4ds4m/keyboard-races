@@ -25,12 +25,11 @@ public class GamePaneController {
     @FXML
     private Label playersResults;
 
-    @FXML
-    private void initialize() {
-        LoginPaneController.PlayerSettings playerSettings = LoginPaneController.getPlayerSettings();
+    private Player player;
 
-        player = new Player(playerSettings.name());
-        player.connectToServer(playerSettings.serverAddress(), playerSettings.serverPort());
+    void createPlayer(String name, String serverAddress, int serverPort) {
+        player = new Player(name, serverAddress, serverPort);
+        new Thread(player).start();
 
         input.disableProperty().bind(text.disableProperty());
         timerDescr.setText("Ожидание игроков:");
@@ -42,7 +41,6 @@ public class GamePaneController {
         player.getGameStopProperty().addListener(new StopGameListener());
     }
 
-    private Player player;
     private List<String> words;
     private int currentWordNum;
     private boolean wordWrong;

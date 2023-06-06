@@ -14,8 +14,10 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 
-public class Player {
+class Player implements Runnable {
     private final PlayerData data;
+    private final String serverAddress;
+    private final int serverPort;
     private int playerNum = -1;
     private final SimpleStringProperty text = new SimpleStringProperty("");
     private final ObservableList<PlayerData> playerDataList = FXCollections.observableArrayList();
@@ -24,8 +26,11 @@ public class Player {
     private final SimpleBooleanProperty gameStopProperty = new SimpleBooleanProperty(false);
     private final SimpleStringProperty remainTimeProperty = new SimpleStringProperty();
 
-    public Player(String name) {
+    public Player(String name, String serverAddress, int serverPort) {
         data = new PlayerData(name);
+        this.serverAddress = serverAddress;
+        this.serverPort = serverPort;
+
     }
 
     public PlayerData getData() {
@@ -56,22 +61,21 @@ public class Player {
         return remainTimeProperty;
     }
 
-    public void connectToServer(String serverAddress, int serverPort) {
-        new Thread(() -> {
-            try (Socket socket = new Socket(serverAddress, serverPort);
-                 ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
-                 ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream())) {
+    @Override
+    public void run() {
+        try (Socket socket = new Socket(serverAddress, serverPort);
+             ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
+             ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream())) {
 
-                ServerCommand command;
-                while ((command = (ServerCommand) reader.readObject()) != ServerCommand.STOP) {
-                    executeCommand(command, reader, writer);
-                }
-                Platform.runLater(() -> gameStopProperty.set(true));
-
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
+            ServerCommand command;
+            while ((command = (ServerCommand) reader.readObject()) != ServerCommand.STOP) {
+                executeCommand(command, reader, writer);
             }
-        }).start();
+            Platform.runLater(() -> gameStopProperty.set(true));
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void executeCommand(

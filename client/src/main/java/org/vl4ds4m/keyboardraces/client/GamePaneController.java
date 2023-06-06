@@ -9,6 +9,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import org.vl4ds4m.keyboardraces.game.GameSettings;
+import org.vl4ds4m.keyboardraces.game.GameState;
 import org.vl4ds4m.keyboardraces.game.PlayerData;
 
 import java.util.ArrayList;
@@ -35,9 +36,7 @@ public class GamePaneController {
         timer.textProperty().bind(player.getRemainTimeProperty());
 
         player.getPlayerDataList().addListener(new ResultsListener());
-        player.getGameReadyProperty().addListener(new ReadyGameListener());
-        player.getGameStartProperty().addListener(new StartGameListener());
-        player.getGameStopProperty().addListener(new StopGameListener());
+        player.getGameStateProperty().addListener(new GameStateListener());
         player.getConnectedProperty().addListener(new ConnectionListener());
 
         new Thread(player).start();
@@ -85,7 +84,8 @@ public class GamePaneController {
 
         private String getPlayerResult(PlayerData playerData) {
             if (playerData.connected()) {
-                if (!player.getGameStartProperty().get()) {
+                if (player.getGameStateProperty().get() == GameState.INIT ||
+                        player.getGameStateProperty().get() == GameState.READY) {
                     return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "");
                 }
 
@@ -104,44 +104,38 @@ public class GamePaneController {
         }
     }
 
-    private class ReadyGameListener implements ChangeListener<Boolean> {
+    private class GameStateListener implements ChangeListener<GameState> {
         @Override
-        public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
-            text.textProperty().bind(player.getText());
-            timerDescr.setText("Игра начнется через:");
-        }
-    }
+        public void changed(ObservableValue<? extends GameState> observableValue, GameState gameState, GameState t1) {
+            if (t1 == GameState.READY) {
+                text.textProperty().bind(player.getText());
+                timerDescr.setText("Игра начнется через:");
 
-    private class StartGameListener implements ChangeListener<Boolean> {
-        @Override
-        public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
-            text.setDisable(false);
-            input.requestFocus();
-            timerDescr.setText("Игра закончится через:");
+            } else if (t1 == GameState.STARTED) {
+                text.setDisable(false);
+                input.requestFocus();
+                timerDescr.setText("Игра закончится через:");
 
-            words = new ArrayList<>(List.of(text.getText().split(" ")));
-            for (int i = 0; i < words.size() - 1; ++i) {
-                words.set(i, words.get(i) + " ");
+                words = new ArrayList<>(List.of(text.getText().split(" ")));
+                for (int i = 0; i < words.size() - 1; ++i) {
+                    words.set(i, words.get(i) + " ");
+                }
+
+                wordWrong = false;
+                currentWordNum = 0;
+                player.getData().setInputCharsCount(0);
+                player.getData().setErrorsCount(0);
+                maxLenRightWord = 0;
+                wrongCharPos = -1;
+
+                input.textProperty().addListener(new InputCharsListener());
+
+            } else if (t1 == GameState.STOPPED) {
+                text.setDisable(true);
+                timerDescr.setText("Игра окончена");
+                timer.textProperty().unbind();
+                timer.setText("");
             }
-
-            wordWrong = false;
-            currentWordNum = 0;
-            player.getData().setInputCharsCount(0);
-            player.getData().setErrorsCount(0);
-            maxLenRightWord = 0;
-            wrongCharPos = -1;
-
-            input.textProperty().addListener(new InputCharsListener());
-        }
-    }
-
-    private class StopGameListener implements ChangeListener<Boolean> {
-        @Override
-        public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
-            text.setDisable(true);
-            timerDescr.setText("Игра окончена");
-            timer.textProperty().unbind();
-            timer.setText("");
         }
     }
 
@@ -163,7 +157,7 @@ public class GamePaneController {
                         if (currentWord.equals(newWord)) {
                             maxLenRightWord = 0;
                             if (currentWordNum == words.size() - 1) {
-                                player.getGameStopProperty().set(true);
+                                player.getGameStateProperty().set(GameState.STOPPED);
                             } else {
                                 ++currentWordNum;
                             }

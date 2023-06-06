@@ -1,6 +1,7 @@
 package org.vl4ds4m.keyboardraces.server;
 
 import org.vl4ds4m.keyboardraces.game.GameSettings;
+import org.vl4ds4m.keyboardraces.game.GameState;
 import org.vl4ds4m.keyboardraces.game.PlayerData;
 import org.vl4ds4m.keyboardraces.game.ServerCommand;
 
@@ -21,9 +22,7 @@ public class GameSession {
     private final List<PlayerHandler> handlers = new ArrayList<>();
     private final List<PlayerData> playerDataList = new ArrayList<>();
     private final String text;
-    private volatile boolean gameReady = false;
-    private volatile boolean gameStarted = false;
-    private volatile boolean gameStopped = false;
+    private GameState gameState = GameState.INIT;
     private volatile int remainTime = GameSettings.AWAIT_TIME;
 
     public GameSession() {
@@ -37,7 +36,7 @@ public class GameSession {
     }
 
     public synchronized boolean addPlayer(Socket playerSocket) {
-        if (!gameReady) {
+        if (gameState == GameState.INIT) {
             PlayerHandler handler = new PlayerHandler(playerSocket, handlers.size());
 
             handlers.add(handler);
@@ -48,7 +47,7 @@ public class GameSession {
             } else if (handlers.size() == GameSettings.MAX_PLAYERS_COUNT) {
                 gameExecutor.shutdown();
 
-                gameReady = true;
+                gameState = GameState.READY;
                 remainTime = GameSettings.COUNTDOWN_TIME;
 
                 gameExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -67,16 +66,16 @@ public class GameSession {
                 remainTime -= 1;
 
                 if (remainTime == 0) {
-                    if (!gameReady) {
-                        gameReady = true;
+                    if (gameState == GameState.INIT) {
+                        gameState = GameState.READY;
                         remainTime = GameSettings.COUNTDOWN_TIME;
-                    } else if (!gameStarted) {
-                        gameStarted = true;
+                    } else if (gameState == GameState.READY) {
+                        gameState = GameState.STARTED;
                         remainTime = GameSettings.GAME_DURATION_TIME;
-                    } else if (!gameStopped) {
+                    } else if (gameState == GameState.STARTED) {
                         finishGame();
                     }
-                } else if (gameStarted && (playersFinishedGame() || playersLeftGame())) {
+                } else if (gameState == GameState.STARTED && (playersFinishedGame() || playersLeftGame())) {
                     finishGame();
                 }
 
@@ -89,7 +88,7 @@ public class GameSession {
         }
 
         private void finishGame() {
-            gameStopped = true;
+            gameState = GameState.STOPPED;
             playersExecutor.shutdown();
             gameExecutor.shutdown();
         }
@@ -136,21 +135,21 @@ public class GameSession {
                 System.out.println(this + " INIT");
 
                 synchronized (this) {
-                    while (!gameReady) {
+                    while (gameState == GameState.INIT) {
                         updateGame(reader, writer);
                         this.wait();
                     }
                     writer.writeObject(ServerCommand.READY);
                     writer.flush();
 
-                    while (!gameStarted) {
+                    while (gameState == GameState.READY) {
                         updateGame(reader, writer);
                         this.wait();
                     }
                     writer.writeObject(ServerCommand.START);
                     writer.flush();
 
-                    while (!gameStopped) {
+                    while (gameState == GameState.STARTED) {
                         updateGame(reader, writer);
                         this.wait();
                     }

@@ -1,10 +1,11 @@
 package org.vl4ds4m.keyboardraces.client;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.vl4ds4m.keyboardraces.game.GameState;
 import org.vl4ds4m.keyboardraces.game.PlayerData;
 import org.vl4ds4m.keyboardraces.game.ServerCommand;
 
@@ -21,9 +22,7 @@ class Player implements Runnable {
     private int playerNum = -1;
     private final SimpleStringProperty text = new SimpleStringProperty("");
     private final ObservableList<PlayerData> playerDataList = FXCollections.observableArrayList();
-    private final SimpleBooleanProperty gameReadyProperty = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty gameStartProperty = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty gameStopProperty = new SimpleBooleanProperty(false);
+    private final SimpleObjectProperty<GameState> gameStateProperty = new SimpleObjectProperty<>(GameState.INIT);
     private final SimpleStringProperty remainTimeProperty = new SimpleStringProperty();
     private final SimpleStringProperty connectedProperty = new SimpleStringProperty("Connection");
 
@@ -46,16 +45,8 @@ class Player implements Runnable {
         return text;
     }
 
-    public SimpleBooleanProperty getGameReadyProperty() {
-        return gameReadyProperty;
-    }
-
-    public SimpleBooleanProperty getGameStartProperty() {
-        return gameStartProperty;
-    }
-
-    public SimpleBooleanProperty getGameStopProperty() {
-        return gameStopProperty;
+    public SimpleObjectProperty<GameState> getGameStateProperty() {
+        return gameStateProperty;
     }
 
     public SimpleStringProperty getRemainTimeProperty() {
@@ -76,7 +67,7 @@ class Player implements Runnable {
             while ((command = (ServerCommand) reader.readObject()) != ServerCommand.STOP) {
                 executeCommand(command, reader, writer);
             }
-            Platform.runLater(() -> gameStopProperty.set(true));
+            Platform.runLater(() -> gameStateProperty.set(GameState.STOPPED));
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -109,9 +100,9 @@ class Player implements Runnable {
 
             case PLAYER_NUM -> playerNum = reader.readInt();
 
-            case READY -> Platform.runLater(() -> gameReadyProperty.set(true));
+            case READY -> Platform.runLater(() -> gameStateProperty.set(GameState.READY));
 
-            case START -> Platform.runLater(() -> gameStartProperty.set(true));
+            case START -> Platform.runLater(() -> gameStateProperty.set(GameState.STARTED));
 
             case TIME -> {
                 String time = String.valueOf(reader.readInt());

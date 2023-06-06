@@ -7,12 +7,12 @@ import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import org.vl4ds4m.keyboardraces.game.GameSettings;
 import org.vl4ds4m.keyboardraces.game.Player;
 import org.vl4ds4m.keyboardraces.game.PlayerData;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class GamePaneController {
     @FXML
@@ -25,7 +25,6 @@ public class GamePaneController {
     private Label timerDescr;
     @FXML
     private Label playersResults;
-
 
     @FXML
     private void initialize() {
@@ -77,10 +76,20 @@ public class GamePaneController {
 
         private String getPlayerResult(PlayerData playerData) {
             if (playerData.connected()) {
-                return playerData.getName() + (playerData.currentPlayer() ? " (Вы), " : ", ") +
-                        playerData.getInputCharsCount() + " % готово" +
+                if (!player.getGameStartProperty().get()) {
+                    return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "");
+                }
+
+                int textLength = text.getText().length();
+                int progress = textLength != 0 ? playerData.getInputCharsCount() * 100 / textLength : 0;
+                int time = GameSettings.GAME_DURATION_TIME - Integer.parseInt(player.getRemainTimeProperty().get());
+                int speed = time != 0 ? playerData.getInputCharsCount() * 60 / time : 0;
+
+                return playerData.getName() +
+                        (playerData.currentPlayer() ? " (Вы), " : ", ") +
+                        progress + " % готово" +
                         ", ошибки: " + playerData.getErrorsCount() +
-                        ", " + playerData.getSpeed() + " сим/мин.";
+                        ", " + speed + " сим/мин.";
             }
             return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "") + ", соединение потеряно.";
         }

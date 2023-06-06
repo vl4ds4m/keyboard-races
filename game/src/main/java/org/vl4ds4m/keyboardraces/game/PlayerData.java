@@ -50,10 +50,6 @@ public class PlayerData implements Serializable {
         this.currentPlayer = currentPlayer;
     }
 
-    public int getSpeed() {
-        return inputCharsCount;
-    }
-
     public static final Comparator<PlayerData> RATE_COMP = (o1, o2) -> {
         if (!o1.connected || !o2.connected) {
             if (o1.connected) {
@@ -65,9 +61,9 @@ public class PlayerData implements Serializable {
             return 0;
         }
 
-        int speedDif = o2.getSpeed() - o1.getSpeed();
+        int inputCharsDif = o2.inputCharsCount - o1.inputCharsCount;
         int errorsDif = o1.errorsCount - o2.errorsCount;
 
-        return speedDif != 0 ? speedDif : errorsDif;
+        return inputCharsDif != 0 ? inputCharsDif : errorsDif;
     };
 }

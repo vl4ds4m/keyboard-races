@@ -1,5 +1,6 @@
 package org.vl4ds4m.keyboardraces.server;
 
+import org.vl4ds4m.keyboardraces.game.GameSettings;
 import org.vl4ds4m.keyboardraces.game.PlayerData;
 import org.vl4ds4m.keyboardraces.game.ServerCommand;
 
@@ -14,12 +15,8 @@ import java.util.concurrent.TimeUnit;
 public class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
     private static final List<String> TEXTS = List.of(/*"email-text.txt",*/ "hello.txt", "example.txt");
-    private static final int MAX_PLAYERS_COUNT = 3;
-    private static final int AWAIT_TIME = 10;
-    private static final int COUNTDOWN_TIME = 3;
-    private static final int GAME_DURATION_TIME = 30;
     private ScheduledExecutorService gameExecutor = Executors.newSingleThreadScheduledExecutor();
-    private final ExecutorService playersExecutor = Executors.newFixedThreadPool(MAX_PLAYERS_COUNT);
+    private final ExecutorService playersExecutor = Executors.newFixedThreadPool(GameSettings.MAX_PLAYERS_COUNT);
     private final GameHandler gameHandler = new GameHandler();
     private final List<PlayerHandler> handlers = new ArrayList<>();
     private final List<PlayerData> playerDataList = new ArrayList<>();
@@ -27,7 +24,7 @@ public class GameSession {
     private volatile boolean gameReady = false;
     private volatile boolean gameStarted = false;
     private volatile boolean gameStopped = false;
-    private volatile int remainTime = AWAIT_TIME;
+    private volatile int remainTime = GameSettings.AWAIT_TIME;
 
     public GameSession() {
         int textNum = new Random().nextInt(TEXTS.size());
@@ -43,17 +40,16 @@ public class GameSession {
         if (!gameReady) {
             PlayerHandler handler = new PlayerHandler(playerSocket, handlers.size());
 
-            //playerDataList.add(new PlayerData("Noname"));
             handlers.add(handler);
             playersExecutor.execute(handler);
 
             if (handlers.size() == 1) {
                 gameExecutor.scheduleAtFixedRate(gameHandler, 0, 1, TimeUnit.SECONDS);
-            } else if (handlers.size() == MAX_PLAYERS_COUNT) {
+            } else if (handlers.size() == GameSettings.MAX_PLAYERS_COUNT) {
                 gameExecutor.shutdown();
 
                 gameReady = true;
-                remainTime = COUNTDOWN_TIME;
+                remainTime = GameSettings.COUNTDOWN_TIME;
 
                 gameExecutor = Executors.newSingleThreadScheduledExecutor();
                 gameExecutor.scheduleAtFixedRate(gameHandler, 0, 1, TimeUnit.SECONDS);
@@ -73,10 +69,10 @@ public class GameSession {
                 if (remainTime == 0) {
                     if (!gameReady) {
                         gameReady = true;
-                        remainTime = COUNTDOWN_TIME;
+                        remainTime = GameSettings.COUNTDOWN_TIME;
                     } else if (!gameStarted) {
                         gameStarted = true;
-                        remainTime = GAME_DURATION_TIME;
+                        remainTime = GameSettings.GAME_DURATION_TIME;
                     } else if (!gameStopped) {
                         gameStopped = true;
                         playersExecutor.shutdown();

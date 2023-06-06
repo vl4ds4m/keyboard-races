@@ -67,7 +67,6 @@ public class Player {
                 Platform.runLater(() -> gameStopProperty.set(true));
 
             } catch (IOException | ClassNotFoundException e) {
-                data.setConnected(false);
                 throw new RuntimeException(e);
             }
         }).start();

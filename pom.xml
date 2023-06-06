@@ -11,7 +11,7 @@
     <modules>
         <module>server</module>
         <module>client</module>
-        <module>player</module>
+        <module>game</module>
     </modules>
 
     <properties>

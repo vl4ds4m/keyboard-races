@@ -13,7 +13,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Pane loginPane = FXMLLoader.load(getURL("/login-pane.fxml"));
-        setStageParams(primaryStage, loginPane, "Keyboard Races - Login");
+        primaryStage.setTitle("Keyboard Races");
+        setStageParams(primaryStage, loginPane);
         primaryStage.show();
     }
 
@@ -26,9 +27,7 @@ public class Main extends Application {
         return url;
     }
 
-    static void setStageParams(Stage stage, Pane pane, String title) {
-        stage.setTitle(title);
-
+    static void setStageParams(Stage stage, Pane pane) {
         if (pane.getScene() == null) {
             stage.setScene(new Scene(pane));
         } else {

@@ -36,7 +36,7 @@ public class LoginPaneController {
 
             Pane gamePane = FXMLLoader.load(Main.getURL("/game-pane.fxml"));
             Stage stage = (Stage) startButton.getScene().getWindow();
-            Main.setStageParams(stage, gamePane, "Keyboard Races - Game");
+            Main.setStageParams(stage, gamePane);
 
             stage.close();
             stage.show();

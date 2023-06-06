@@ -1,10 +1,12 @@
-package org.vl4ds4m.keyboardraces.game;
+package org.vl4ds4m.keyboardraces.client;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.vl4ds4m.keyboardraces.game.PlayerData;
+import org.vl4ds4m.keyboardraces.game.ServerCommand;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

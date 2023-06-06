@@ -74,23 +74,10 @@ public class GameSession {
                         gameStarted = true;
                         remainTime = GameSettings.GAME_DURATION_TIME;
                     } else if (!gameStopped) {
-                        gameStopped = true;
-                        playersExecutor.shutdown();
-                        gameExecutor.shutdown();
+                        finishGame();
                     }
-                } else if (gameStarted) {
-                    boolean playersFinished = true;
-                    for (PlayerData playerData : playerDataList) {
-                        if (playerData.getInputCharsCount() < text.length()) {
-                            playersFinished = false;
-                            break;
-                        }
-                    }
-                    if (playersFinished) {
-                        gameStopped = true;
-                        playersExecutor.shutdown();
-                        gameExecutor.shutdown();
-                    }
+                } else if (gameStarted && (playersFinishedGame() || playersLeftGame())) {
+                    finishGame();
                 }
 
                 for (PlayerHandler handler : handlers) {
@@ -99,6 +86,34 @@ public class GameSession {
                     }
                 }
             }
+        }
+
+        private void finishGame() {
+            gameStopped = true;
+            playersExecutor.shutdown();
+            gameExecutor.shutdown();
+        }
+
+        private boolean playersFinishedGame() {
+            boolean playersFinishedGame = true;
+            for (PlayerData playerData : playerDataList) {
+                if (playerData.getInputCharsCount() < text.length()) {
+                    playersFinishedGame = false;
+                    break;
+                }
+            }
+            return playersFinishedGame;
+        }
+
+        private boolean playersLeftGame() {
+            boolean playersLeftGame = true;
+            for (PlayerData playerData : playerDataList) {
+                if (playerData.connected()) {
+                    playersLeftGame = false;
+                    break;
+                }
+            }
+            return playersLeftGame;
         }
     }
 
@@ -141,6 +156,8 @@ public class GameSession {
                     }
                     writer.writeObject(ServerCommand.STOP);
                     writer.flush();
+
+                    System.out.println(this + " EXIT");
                 }
             } catch (IOException | ClassNotFoundException | InterruptedException e) {
                 System.out.println(this + " DISCONNECT, message: " + e);

@@ -54,16 +54,7 @@ public class PlayerData implements Serializable {
         return inputCharsCount;
     }
 
-    @Override
-    public String toString() {
-        return name +
-                (currentPlayer ? " (You)" : "") +
-                ", Speed: " + getSpeed() +
-                ", Errors: " + errorsCount +
-                ", Connection: " + (connected ? "Ok" : "Break");
-    }
-
-    public static final Comparator<PlayerData> COMPARATOR = (o1, o2) -> {
+    public static final Comparator<PlayerData> RATE_COMP = (o1, o2) -> {
         if (!o1.connected || !o2.connected) {
             if (o1.connected) {
                 return -1;

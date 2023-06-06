@@ -24,11 +24,7 @@ public class GamePaneController {
     @FXML
     private Label timerDescr;
     @FXML
-    private Label firstPlace;
-    @FXML
-    private Label secondPlace;
-    @FXML
-    private Label thirdPlace;
+    private Label playersResults;
 
 
     @FXML
@@ -58,21 +54,35 @@ public class GamePaneController {
     private class ResultsListener implements ListChangeListener<PlayerData> {
         @Override
         public void onChanged(Change<? extends PlayerData> change) {
-            if (player.getPlayerDataList().size() >= 1) {
-                firstPlace.setText("1. " + player.getPlayerDataList().get(0));
-            } else {
-                firstPlace.setText("");
+            int place = 1;
+            StringBuilder results = new StringBuilder();
+
+            for (int i = 0; i < player.getPlayerDataList().size(); ++i) {
+                PlayerData current = player.getPlayerDataList().get(i);
+                if (i == 0) {
+                    results.append(place).append(".\t").append(getPlayerResult(current));
+                } else {
+                    results.append("\n");
+                    PlayerData previous = player.getPlayerDataList().get(i - 1);
+                    if (PlayerData.RATE_COMP.compare(current, previous) == 0) {
+                        results.append("\t").append(getPlayerResult(current));
+                    } else {
+                        results.append(++place).append(".\t").append(getPlayerResult(current));
+                    }
+                }
             }
-            if (player.getPlayerDataList().size() >= 2) {
-                secondPlace.setText("2. " + player.getPlayerDataList().get(1));
-            } else {
-                secondPlace.setText("");
+
+            playersResults.setText(results.toString());
+        }
+
+        private String getPlayerResult(PlayerData playerData) {
+            if (playerData.connected()) {
+                return playerData.getName() + (playerData.currentPlayer() ? " (Вы), " : ", ") +
+                        playerData.getInputCharsCount() + " % готово" +
+                        ", ошибки: " + playerData.getErrorsCount() +
+                        ", " + playerData.getSpeed() + " сим/мин.";
             }
-            if (player.getPlayerDataList().size() >= 3) {
-                thirdPlace.setText("3. " + player.getPlayerDataList().get(2));
-            } else {
-                thirdPlace.setText("");
-            }
+            return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "") + ", соединение потеряно.";
         }
     }
 

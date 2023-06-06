@@ -116,7 +116,7 @@ public class Player {
                     }
                 }
 
-                newPlayerDataList.sort(PlayerData.COMPARATOR);
+                newPlayerDataList.sort(PlayerData.RATE_COMP);
 
                 Platform.runLater(() -> {
                     for (int i = 0; i < newPlayerDataList.size(); ++i) {

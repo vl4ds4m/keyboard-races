@@ -38,14 +38,12 @@ public class GamePaneController {
         player = new Player(playerSettings.name());
         player.connectToServer(playerSettings.serverAddress(), playerSettings.serverPort());
 
-        text.textProperty().bind(player.getText());
         input.disableProperty().bind(text.disableProperty());
         timerDescr.setText("Ожидание игроков:");
         timer.textProperty().bind(player.getRemainTimeProperty());
 
         player.getPlayersResultsList().addListener(new ResultsListener());
-        player.getGameReadyProperty().addListener(
-                (observableValue, aBoolean, t1) -> timerDescr.setText("Игра начнется через:"));
+        player.getGameReadyProperty().addListener(new ReadyGameListener());
         player.getGameStartProperty().addListener(new StartGameListener());
         player.getGameStopProperty().addListener(new StopGameListener());
     }
@@ -75,6 +73,14 @@ public class GamePaneController {
             } else {
                 thirdPlace.setText("");
             }
+        }
+    }
+
+    private class ReadyGameListener implements ChangeListener<Boolean> {
+        @Override
+        public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
+            text.textProperty().bind(player.getText());
+            timerDescr.setText("Игра начнется через:");
         }
     }
 

@@ -78,9 +78,22 @@ public class GameSession {
                         playersExecutor.shutdown();
                         gameExecutor.shutdown();
                     }
+                } else if (gameStarted) {
+                    boolean playersFinished = true;
+                    for (PlayerData playerData : playerDataList) {
+                        if (playerData.getInputCharsCount() < text.length()) {
+                            playersFinished = false;
+                            break;
+                        }
+                    }
+                    if (playersFinished) {
+                        gameStopped = true;
+                        playersExecutor.shutdown();
+                        gameExecutor.shutdown();
+                    }
                 }
 
-                for (var handler : handlers) {
+                for (PlayerHandler handler : handlers) {
                     synchronized (handler) {
                         handler.notify();
                     }

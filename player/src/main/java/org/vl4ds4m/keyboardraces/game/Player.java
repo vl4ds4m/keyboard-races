@@ -60,8 +60,8 @@ public class Player {
                  ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
                  ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream())) {
 
-                Protocol command;
-                while ((command = (Protocol) reader.readObject()) != Protocol.STOP) {
+                ServerCommand command;
+                while ((command = (ServerCommand) reader.readObject()) != ServerCommand.STOP) {
                     executeCommand(command, reader, writer);
                 }
                 Platform.runLater(() -> gameStopProperty.set(true));
@@ -74,7 +74,7 @@ public class Player {
     }
 
     private void executeCommand(
-            Protocol command,
+            ServerCommand command,
             ObjectInputStream reader,
             ObjectOutputStream writer
     ) throws IOException, ClassNotFoundException {

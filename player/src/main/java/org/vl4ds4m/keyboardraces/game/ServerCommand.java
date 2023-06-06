@@ -2,7 +2,7 @@ package org.vl4ds4m.keyboardraces.game;
 
 import java.io.Serializable;
 
-public enum Protocol implements Serializable {
+public enum ServerCommand implements Serializable {
     TEXT,
     NEED_NAME,
     PLAYER_NUM,

@@ -1,7 +1,7 @@
 package org.vl4ds4m.keyboardraces.server;
 
 import org.vl4ds4m.keyboardraces.game.PlayerData;
-import org.vl4ds4m.keyboardraces.game.Protocol;
+import org.vl4ds4m.keyboardraces.game.ServerCommand;
 
 import java.io.*;
 import java.net.Socket;
@@ -116,21 +116,21 @@ public class GameSession {
                         updateGame(reader, writer);
                         this.wait();
                     }
-                    writer.writeObject(Protocol.READY);
+                    writer.writeObject(ServerCommand.READY);
                     writer.flush();
 
                     while (!gameStarted) {
                         updateGame(reader, writer);
                         this.wait();
                     }
-                    writer.writeObject(Protocol.START);
+                    writer.writeObject(ServerCommand.START);
                     writer.flush();
 
                     while (!gameStopped) {
                         updateGame(reader, writer);
                         this.wait();
                     }
-                    writer.writeObject(Protocol.STOP);
+                    writer.writeObject(ServerCommand.STOP);
                     writer.flush();
                 }
             } catch (IOException | ClassNotFoundException | InterruptedException e) {
@@ -146,7 +146,7 @@ public class GameSession {
                 ObjectOutputStream writer
         ) throws IOException, ClassNotFoundException {
 
-            writer.writeObject(Protocol.NEED_NAME);
+            writer.writeObject(ServerCommand.NEED_NAME);
             writer.flush();
 
             String playerName = (String) reader.readObject();
@@ -154,10 +154,10 @@ public class GameSession {
                 playerDataList.add(new PlayerData(playerName));
             }
 
-            writer.writeObject(Protocol.TEXT);
+            writer.writeObject(ServerCommand.TEXT);
             writer.writeObject(text);
 
-            writer.writeObject(Protocol.PLAYER_NUM);
+            writer.writeObject(ServerCommand.PLAYER_NUM);
             writer.writeInt(playerNum);
 
             writer.flush();
@@ -168,7 +168,7 @@ public class GameSession {
                 ObjectOutputStream writer
         ) throws IOException, ClassNotFoundException {
 
-            writer.writeObject(Protocol.NEED_COUNTS);
+            writer.writeObject(ServerCommand.NEED_COUNTS);
             writer.flush();
 
             int inputCharsCount = reader.readInt();
@@ -178,11 +178,11 @@ public class GameSession {
                 playerDataList.get(playerNum).setErrorsCount(errorsCount);
             }
 
-            writer.writeObject(Protocol.DATA_LIST);
+            writer.writeObject(ServerCommand.DATA_LIST);
             writer.reset();
             writer.writeObject(playerDataList);
 
-            writer.writeObject(Protocol.TIME);
+            writer.writeObject(ServerCommand.TIME);
             writer.writeInt(remainTime);
 
             writer.flush();

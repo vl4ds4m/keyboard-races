@@ -74,7 +74,8 @@ class Player implements Runnable {
             Platform.runLater(() -> gameStopProperty.set(true));
 
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            data.setConnected(false);
+            System.err.println(e.getMessage());
         }
     }
 

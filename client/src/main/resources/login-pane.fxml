@@ -14,10 +14,9 @@
 
     <TextField fx:id="playerName" promptText="Ваше имя" text="Игрок"/>
 
-    <Button fx:id="startButton" alignment="CENTER" maxHeight="30.0" maxWidth="100.0" minHeight="30.0" minWidth="100.0"
-            onAction="#clickStartButton" text="Начать игру"/>
+    <Button fx:id="startButton" alignment="CENTER" onAction="#clickStartButton" text="Начать игру"/>
 
-    <Label alignment="CENTER" maxHeight="30.0" maxWidth="100.0" minHeight="30.0" minWidth="100.0" text="Регистрация"/>
+    <Button alignment="CENTER" text="Об игре"/>
 
     <padding>
         <Insets left="30.0" right="30.0" top="30.0"/>

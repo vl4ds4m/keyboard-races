@@ -32,7 +32,6 @@ public class GamePaneController {
         new Thread(player).start();
 
         input.disableProperty().bind(text.disableProperty());
-        timerDescr.setText("Ожидание игроков:");
         timer.textProperty().bind(player.getRemainTimeProperty());
 
         player.getPlayerDataList().addListener(new ResultsListener());

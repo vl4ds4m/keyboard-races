@@ -74,8 +74,8 @@
             </font>
         </Label>
 
-        <FlowPane fx:id="wordsPane" alignment="CENTER" columnHalignment="CENTER" hgap="5.0" maxHeight="300.0"
-                  maxWidth="750.0" prefWrapLength="300.0"/>
+        <FlowPane fx:id="wordsPane" alignment="CENTER" columnHalignment="CENTER" maxHeight="300.0" maxWidth="750.0"
+                  prefWrapLength="300.0"/>
 
         <StackPane alignment="BOTTOM_CENTER" maxHeight="350.0" maxWidth="800.0">
 

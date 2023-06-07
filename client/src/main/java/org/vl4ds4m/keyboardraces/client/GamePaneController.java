@@ -158,6 +158,15 @@ public class GamePaneController {
 
                 if (!wordWrong) {
                     if (currentWord.startsWith(newWord)) {
+                        if (newWord.length() > oldWord.length()) {
+                            leftPart.setText(leftPart.getText() + rightPart.getText().charAt(0));
+                            rightPart.setText(rightPart.getText().substring(1));
+                        } else if (newWord.length() < oldWord.length() && leftPart.getText().length() > 0) {
+                            rightPart.setText(leftPart.getText().charAt(leftPart.getText().length() - 1) +
+                                    rightPart.getText());
+                            leftPart.setText(leftPart.getText().substring(0, leftPart.getText().length() - 1));
+                        }
+
                         if (newWord.length() > maxLenRightWord) {
                             player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
                             ++maxLenRightWord;
@@ -175,17 +184,7 @@ public class GamePaneController {
                                 }
 
                                 Platform.runLater(() -> input.setText(""));
-                            } else {
-                                leftPart.setText(leftPart.getText() + rightPart.getText().charAt(0));
-                                rightPart.setText(rightPart.getText().substring(1));
                             }
-                        } else if (newWord.length() > oldWord.length()) {
-                            leftPart.setText(leftPart.getText() + rightPart.getText().charAt(0));
-                            rightPart.setText(rightPart.getText().substring(1));
-                        } else if (newWord.length() < oldWord.length() && leftPart.getText().length() > 0) {
-                            rightPart.setText(leftPart.getText().charAt(leftPart.getText().length() - 1) +
-                                    rightPart.getText());
-                            leftPart.setText(leftPart.getText().substring(0, leftPart.getText().length() - 1));
                         }
                     } else {
                         wordWrong = true;
@@ -214,6 +213,10 @@ public class GamePaneController {
 
                 words = new ArrayList<>(List.of(player.getText().get().split(" ")));
 
+                for (int i = 0; i < words.size() - 1; ++i) {
+                    words.set(i, words.get(i) + " ");
+                }
+
                 wordsPane.getChildren().clear();
                 for (int i = 0; i < words.size(); ++i) {
                     if (i == 0) {
@@ -233,10 +236,6 @@ public class GamePaneController {
                         text.setOpacity(0.2);
                         wordsPane.getChildren().add(text);
                     }
-                }
-
-                for (int i = 0; i < words.size() - 1; ++i) {
-                    words.set(i, words.get(i) + " ");
                 }
 
                 wordsPane.setVisible(true);

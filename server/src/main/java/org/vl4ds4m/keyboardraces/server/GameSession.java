@@ -69,7 +69,7 @@ public class GameSession {
                     } else if (gameState == GameState.STARTED) {
                         finishGame();
                     }
-                } else if (gameState == GameState.STARTED && (playersFinishedGame() || playersLeftGame())) {
+                } else if (gameState == GameState.STARTED && playersFinishedGame()) {
                     finishGame();
                 }
 
@@ -90,23 +90,12 @@ public class GameSession {
         private boolean playersFinishedGame() {
             boolean playersFinishedGame = true;
             for (PlayerData playerData : playerDataList) {
-                if (playerData.getInputCharsCount() < text.length()) {
+                if (playerData.connected() && playerData.getInputCharsCount() < text.length()) {
                     playersFinishedGame = false;
                     break;
                 }
             }
             return playersFinishedGame;
-        }
-
-        private boolean playersLeftGame() {
-            boolean playersLeftGame = true;
-            for (PlayerData playerData : playerDataList) {
-                if (playerData.connected()) {
-                    playersLeftGame = false;
-                    break;
-                }
-            }
-            return playersLeftGame;
         }
     }
 
@@ -129,7 +118,7 @@ public class GameSession {
                 System.out.println(this + " INIT");
 
                 synchronized (this) {
-                    while (gameState != GameState.STOPPED){
+                    while (gameState != GameState.STOPPED) {
                         GameState currentState = gameState;
                         while (currentState == gameState) {
                             updateGame(reader, writer);

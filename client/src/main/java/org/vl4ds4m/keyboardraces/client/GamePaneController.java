@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.vl4ds4m.keyboardraces.game.GameSettings;
@@ -127,6 +128,8 @@ public class GamePaneController {
     }
 
     private List<String> words;
+    private static final Font USUAL_FONT = Font.font("System", 20.0);
+    private static final Font BOLD_FONT = new Font("System Bold", 20.0);
 
     private class InputCharsListener implements ChangeListener<String> {
         private int currentWordNum = 0;
@@ -140,19 +143,21 @@ public class GamePaneController {
             wrongCharPos = -1;
             maxLenRightWord = 0;
 
-            ((Text) wordsPane.getChildren().get(currentWordNum)).setUnderline(true);
+            ((Text) wordsPane.getChildren().get(currentWordNum)).setFill(Color.GREEN);
+            ((Text) wordsPane.getChildren().get(currentWordNum)).setFont(BOLD_FONT);
+            ((Text) wordsPane.getChildren().get(currentWordNum + 1)).setFont(BOLD_FONT);
         }
 
-        // TODO Lock ctrl+V and selection text
         @Override
         public void changed(ObservableValue<? extends String> observableWord, String oldWord, String newWord) {
             synchronized (player.getData()) {
                 System.out.println(oldWord + " -> " + newWord);
 
                 int lastCharPos = newWord.length() - 1;
+                String currentWord = words.get(currentWordNum);
+
                 Text leftPart = (Text) wordsPane.getChildren().get(currentWordNum);
                 Text rightPart = (Text) wordsPane.getChildren().get(currentWordNum + 1);
-                String currentWord = words.get(currentWordNum);
 
                 System.out.println("<" + leftPart.getText() + "> -> <" + rightPart.getText() + ">");
 
@@ -172,7 +177,9 @@ public class GamePaneController {
                             ++maxLenRightWord;
                             if (currentWord.equals(newWord)) {
                                 maxLenRightWord = 0;
-                                ((Text) wordsPane.getChildren().get(currentWordNum)).setUnderline(false);
+
+                                leftPart.setFill(Color.BLACK);
+                                leftPart.setFont(USUAL_FONT);
 
                                 if (currentWordNum == words.size() - 1) {
                                     player.getData().setFinishTime(
@@ -180,7 +187,8 @@ public class GamePaneController {
                                     player.getGameStateProperty().set(GameState.STOPPED);
                                 } else {
                                     ++currentWordNum;
-                                    ((Text) wordsPane.getChildren().get(currentWordNum)).setUnderline(true);
+                                    rightPart.setFill(Color.GREEN);
+                                    ((Text) wordsPane.getChildren().get(currentWordNum + 1)).setFont(BOLD_FONT);
                                 }
 
                                 Platform.runLater(() -> input.setText(""));
@@ -190,11 +198,13 @@ public class GamePaneController {
                         wordWrong = true;
                         player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
                         wrongCharPos = lastCharPos;
+                        leftPart.setFill(Color.RED);
                     }
                 } else {
                     if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos) {
                         wordWrong = false;
                         wrongCharPos = -1;
+                        leftPart.setFill(Color.GREEN);
                     }
                 }
             }
@@ -212,32 +222,11 @@ public class GamePaneController {
                 timerDescr.setText("Игра начнется через:");
 
                 words = new ArrayList<>(List.of(player.getText().get().split(" ")));
-
                 for (int i = 0; i < words.size() - 1; ++i) {
                     words.set(i, words.get(i) + " ");
                 }
 
-                wordsPane.getChildren().clear();
-                for (int i = 0; i < words.size(); ++i) {
-                    if (i == 0) {
-                        Text left = new Text("");
-                        left.setFont(Font.font(16.0));
-                        left.setOpacity(0.2);
-                        wordsPane.getChildren().add(left);
-
-                        Text right = new Text((words.get(0)));
-                        right.setFont(Font.font(16.0));
-                        right.setOpacity(0.2);
-                        wordsPane.getChildren().add(right);
-
-                    } else {
-                        Text text = new Text(words.get(i));
-                        text.setFont(Font.font(16.0));
-                        text.setOpacity(0.2);
-                        wordsPane.getChildren().add(text);
-                    }
-                }
-
+                initializeWordsPane();
                 wordsPane.setVisible(true);
 
             } else if (t1 == GameState.STARTED) {
@@ -269,6 +258,18 @@ public class GamePaneController {
                 newGameButton.setVisible(true);
                 newGameButton.setDisable(false);
             }
+        }
+
+        private void initializeWordsPane() {
+            wordsPane.getChildren().clear();
+
+            wordsPane.getChildren().add(new Text(""));
+            words.forEach(word -> wordsPane.getChildren().add(new Text(word)));
+
+            wordsPane.getChildren().forEach(text -> {
+                ((Text) text).setFont(USUAL_FONT);
+                text.setOpacity(0.2);
+            });
         }
 
         private void printResult() {

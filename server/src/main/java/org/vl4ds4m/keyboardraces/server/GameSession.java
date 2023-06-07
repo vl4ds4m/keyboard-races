@@ -129,35 +129,36 @@ public class GameSession {
                 System.out.println(this + " INIT");
 
                 synchronized (this) {
-                    while (gameState == GameState.INIT) {
-                        updateGame(reader, writer);
-                        this.wait();
+                    while (gameState != GameState.STOPPED){
+                        GameState currentState = gameState;
+                        while (currentState == gameState) {
+                            updateGame(reader, writer);
+                            this.wait();
+                        }
+                        writer.writeObject(stateToCommand(gameState));
+                        writer.flush();
                     }
-                    writer.writeObject(ServerCommand.READY);
-                    writer.flush();
-
-                    while (gameState == GameState.READY) {
-                        updateGame(reader, writer);
-                        this.wait();
-                    }
-                    writer.writeObject(ServerCommand.START);
-                    writer.flush();
-
-                    while (gameState == GameState.STARTED) {
-                        updateGame(reader, writer);
-                        this.wait();
-                    }
-                    writer.writeObject(ServerCommand.STOP);
-                    writer.flush();
-
-                    System.out.println(this + " EXIT");
                 }
+
+                System.out.println(this + " EXIT");
+
             } catch (IOException | ClassNotFoundException | InterruptedException e) {
                 System.out.println(this + " DISCONNECT, message: " + e);
                 synchronized (GameSession.this) {
                     playerDataList.get(playerNum).setConnected(false);
                 }
             }
+        }
+
+        private ServerCommand stateToCommand(GameState gameState) {
+            ServerCommand serverCommand;
+            switch (gameState) {
+                case READY -> serverCommand = ServerCommand.READY;
+                case STARTED -> serverCommand = ServerCommand.START;
+                case STOPPED -> serverCommand = ServerCommand.STOP;
+                default -> throw new RuntimeException("Invalid game state for stateToCommand function.");
+            }
+            return serverCommand;
         }
 
         private void initGame(

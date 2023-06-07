@@ -149,6 +149,8 @@ public class GamePaneController {
                 System.out.println(oldWord + " -> " + newWord);
 
                 int lastCharPos = newWord.length() - 1;
+                Text leftPart = (Text) wordsPane.getChildren().get(currentWordNum);
+                Text rightPart = (Text) wordsPane.getChildren().get(currentWordNum + 1);
                 String currentWord = words.get(currentWordNum);
 
                 if (!wordWrong) {
@@ -156,7 +158,6 @@ public class GamePaneController {
                         if (newWord.length() > maxLenRightWord) {
                             player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
                             ++maxLenRightWord;
-
                             if (currentWord.equals(newWord)) {
                                 maxLenRightWord = 0;
                                 ((Text) wordsPane.getChildren().get(currentWordNum)).setUnderline(false);
@@ -171,7 +172,17 @@ public class GamePaneController {
                                 }
 
                                 Platform.runLater(() -> input.setText(""));
+                            } else {
+                                leftPart.setText(leftPart.getText() + rightPart.getText().charAt(0));
+                                rightPart.setText(rightPart.getText().substring(1));
                             }
+                        } else if (newWord.length() > oldWord.length()) {
+                            leftPart.setText(leftPart.getText() + rightPart.getText().charAt(0));
+                            rightPart.setText(rightPart.getText().substring(1));
+                        } else if (newWord.length() < oldWord.length() && newWord.length() > 0) {
+                            rightPart.setText(leftPart.getText().charAt(leftPart.getText().length() - 1) +
+                                    rightPart.getText());
+                            leftPart.setText(leftPart.getText().substring(0, leftPart.getText().length() - 1));
                         }
                     } else {
                         wordWrong = true;
@@ -201,12 +212,25 @@ public class GamePaneController {
                 words = new ArrayList<>(List.of(player.getText().get().split(" ")));
 
                 wordsPane.getChildren().clear();
-                words.forEach(word -> {
-                    Text text = new Text(word);
-                    text.setFont(Font.font(16.0));
-                    text.setOpacity(0.2);
-                    wordsPane.getChildren().add(text);
-                });
+                for (int i = 0; i < words.size(); ++i) {
+                    if (i == 0) {
+                        Text left = new Text("");
+                        left.setFont(Font.font(16.0));
+                        left.setOpacity(0.2);
+                        wordsPane.getChildren().add(left);
+
+                        Text right = new Text((words.get(0)));
+                        right.setFont(Font.font(16.0));
+                        right.setOpacity(0.2);
+                        wordsPane.getChildren().add(right);
+
+                    } else {
+                        Text text = new Text(words.get(i));
+                        text.setFont(Font.font(16.0));
+                        text.setOpacity(0.2);
+                        wordsPane.getChildren().add(text);
+                    }
+                }
 
                 for (int i = 0; i < words.size() - 1; ++i) {
                     words.set(i, words.get(i) + " ");
@@ -215,14 +239,15 @@ public class GamePaneController {
                 wordsPane.setVisible(true);
 
             } else if (t1 == GameState.STARTED) {
-                input.clear();
-                input.setDisable(false);
-                input.requestFocus();
                 timerDescr.setText("Игра закончится через:");
 
                 wordsPane.getChildren().forEach(text -> text.setOpacity(1.0));
 
                 inputCharsListener.initialize();
+
+                input.clear();
+                input.setDisable(false);
+                input.requestFocus();
                 input.textProperty().addListener(inputCharsListener);
 
             } else if (t1 == GameState.STOPPED) {

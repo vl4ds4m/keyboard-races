@@ -226,13 +226,13 @@ public class GamePaneController {
             wordWrong = true;
             player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
             wrongCharPos = newWord.length() - 1;
-            leftPart.setFill(Color.RED);
+            rightPart.setFill(Color.RED);
         }
 
         private void unsetError() {
             wordWrong = false;
             wrongCharPos = -1;
-            leftPart.setFill(Color.GREEN);
+            rightPart.setFill(Color.BLACK);
         }
     }
 

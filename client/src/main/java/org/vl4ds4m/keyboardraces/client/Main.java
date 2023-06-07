@@ -18,7 +18,6 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-
     static URL getURL(String resourceName) throws IOException {
         URL url = Main.class.getResource(resourceName);
         if (url == null) {

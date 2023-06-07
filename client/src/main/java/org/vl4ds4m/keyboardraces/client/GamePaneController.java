@@ -63,7 +63,9 @@ public class GamePaneController {
         player.getGameStateProperty().addListener(new GameStateListener());
         player.getConnectedProperty().addListener(new ConnectionListener());
 
-        new Thread(player).start();
+        Thread playerThread = new Thread(player);
+        playerThread.setDaemon(true);
+        playerThread.start();
     }
 
     private static class ConnectionListener implements ChangeListener<String> {

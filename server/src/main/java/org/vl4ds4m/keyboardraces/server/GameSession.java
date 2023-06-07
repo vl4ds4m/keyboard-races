@@ -16,9 +16,8 @@ import java.util.concurrent.TimeUnit;
 public class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
     private static final List<String> TEXTS = List.of(/*"email-text.txt",*/ "hello.txt", "example.txt");
-    private ScheduledExecutorService gameExecutor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService gameExecutor = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService playersExecutor = Executors.newFixedThreadPool(GameSettings.MAX_PLAYERS_COUNT);
-    private final GameHandler gameHandler = new GameHandler();
     private final List<PlayerHandler> handlers = new ArrayList<>();
     private final List<PlayerData> playerDataList = new ArrayList<>();
     private final String text;
@@ -43,15 +42,7 @@ public class GameSession {
             playersExecutor.execute(handler);
 
             if (handlers.size() == 1) {
-                gameExecutor.scheduleAtFixedRate(gameHandler, 0, 1, TimeUnit.SECONDS);
-            } else if (handlers.size() == GameSettings.MAX_PLAYERS_COUNT) {
-                gameExecutor.shutdown();
-
-                gameState = GameState.READY;
-                remainTime = GameSettings.COUNTDOWN_TIME;
-
-                gameExecutor = Executors.newSingleThreadScheduledExecutor();
-                gameExecutor.scheduleAtFixedRate(gameHandler, 0, 1, TimeUnit.SECONDS);
+                gameExecutor.scheduleAtFixedRate(new GameHandler(), 0, 1, TimeUnit.SECONDS);
             }
 
             return true;
@@ -65,7 +56,10 @@ public class GameSession {
             synchronized (GameSession.this) {
                 remainTime -= 1;
 
-                if (remainTime == 0) {
+                if (gameState == GameState.INIT && handlers.size() == GameSettings.MAX_PLAYERS_COUNT) {
+                    gameState = GameState.READY;
+                    remainTime = GameSettings.COUNTDOWN_TIME;
+                } else if (remainTime == 0) {
                     if (gameState == GameState.INIT) {
                         gameState = GameState.READY;
                         remainTime = GameSettings.COUNTDOWN_TIME;

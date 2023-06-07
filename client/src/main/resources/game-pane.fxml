@@ -29,7 +29,7 @@
                 <Insets left="10.0"/>
             </padding>
 
-            <Label fx:id="playersResults" text="Список игроков" wrapText="true">
+            <Label fx:id="playersResults" text="Players List" wrapText="true">
                 <font>
                     <Font size="16.0"/>
                 </font>
@@ -46,13 +46,13 @@
 
         <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0">
 
-            <Label fx:id="timerDescr" alignment="CENTER" text="Ожидание игроков">
+            <Label fx:id="timerDescr" alignment="CENTER" text="Timer Descr">
                 <font>
-                    <Font size="15.0"/>
+                    <Font size="16.0"/>
                 </font>
             </Label>
 
-            <Label fx:id="timer" text="Таймер">
+            <Label fx:id="timer" text="Timer">
                 <font>
                     <Font size="16.0"/>
                 </font>
@@ -66,12 +66,23 @@
 
         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="350.0" stroke="BLACK" strokeType="INSIDE"
                    width="800.0"/>
-        <Label fx:id="text" alignment="CENTER" lineSpacing="4.0" maxHeight="300.0" maxWidth="750.0" text="Текст"
-               wrapText="true">
+        <Label fx:id="text" alignment="CENTER" lineSpacing="4.0" maxHeight="300.0" maxWidth="750.0" wrapText="true"
+               text="TEXT">
             <font>
                 <Font size="16.0"/>
             </font>
         </Label>
+
+        <StackPane alignment="BOTTOM_CENTER" maxHeight="350.0" maxWidth="800.0">
+            <padding>
+                <Insets bottom="100.0"/>
+            </padding>
+            <Button disable="true" text="Новая игра" fx:id="newGameButton" onAction="#playAgain">
+                <font>
+                    <Font size="16.0"/>
+                </font>
+            </Button>
+        </StackPane>
 
     </StackPane>
 

@@ -6,6 +6,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import org.vl4ds4m.keyboardraces.game.GameSettings;
@@ -26,14 +27,27 @@ public class GamePaneController {
     private Label timerDescr;
     @FXML
     private Label playersResults;
+    @FXML
+    private Button newGameButton;
+
+    @FXML
+    private void playAgain() {
+        createPlayer(player.getData().getName(), player.getServerAddress(), player.getServerPort());
+    }
 
     private Player player;
 
     void createPlayer(String name, String serverAddress, int serverPort) {
         player = new Player(name, serverAddress, serverPort);
 
+        newGameButton.setDisable(true);
+        newGameButton.setVisible(false);
+
+        text.setText("Текст");
         text.setDisable(true);
         input.setDisable(true);
+
+        timerDescr.setText("Ожидание игроков");
         timer.textProperty().bind(player.getRemainTimeProperty());
 
         player.getPlayerDataList().addListener(new ResultsListener());
@@ -142,11 +156,16 @@ public class GamePaneController {
 
             } else if (t1 == GameState.STOPPED) {
                 input.setDisable(true);
+
                 timerDescr.setText("Игра окончена");
                 timer.textProperty().unbind();
                 timer.setText("");
+
                 text.textProperty().unbind();
                 printResult();
+
+                newGameButton.setVisible(true);
+                newGameButton.setDisable(false);
             }
         }
 

@@ -33,6 +33,14 @@ class Player implements Runnable {
 
     }
 
+    public String getServerAddress() {
+        return serverAddress;
+    }
+
+    public int getServerPort() {
+        return serverPort;
+    }
+
     public PlayerData getData() {
         return data;
     }

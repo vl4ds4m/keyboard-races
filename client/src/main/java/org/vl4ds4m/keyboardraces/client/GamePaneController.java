@@ -32,7 +32,8 @@ public class GamePaneController {
     void createPlayer(String name, String serverAddress, int serverPort) {
         player = new Player(name, serverAddress, serverPort);
 
-        input.disableProperty().bind(text.disableProperty());
+        text.setDisable(true);
+        input.setDisable(true);
         timer.textProperty().bind(player.getRemainTimeProperty());
 
         player.getPlayerDataList().addListener(new ResultsListener());
@@ -89,7 +90,7 @@ public class GamePaneController {
                     return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "");
                 }
 
-                int textLength = text.getText().length();
+                int textLength = player.getText().length().get();
                 int progress = textLength != 0 ? playerData.getInputCharsCount() * 100 / textLength : 0;
                 int time = GameSettings.GAME_DURATION_TIME - Integer.parseInt(player.getRemainTimeProperty().get());
                 int speed = time != 0 ? playerData.getInputCharsCount() * 60 / time : 0;
@@ -113,6 +114,7 @@ public class GamePaneController {
 
             } else if (t1 == GameState.STARTED) {
                 text.setDisable(false);
+                input.setDisable(false);
                 input.requestFocus();
                 timerDescr.setText("Игра закончится через:");
 
@@ -131,10 +133,27 @@ public class GamePaneController {
                 input.textProperty().addListener(new InputCharsListener());
 
             } else if (t1 == GameState.STOPPED) {
-                text.setDisable(true);
+                input.setDisable(true);
                 timerDescr.setText("Игра окончена");
                 timer.textProperty().unbind();
                 timer.setText("");
+                text.textProperty().unbind();
+                printResult();
+            }
+        }
+
+        private void printResult() {
+            int playerNum = -1;
+            for (int i = 0; i < player.getPlayerDataList().size(); ++i) {
+                if (player.getPlayerDataList().get(i).currentPlayer()) {
+                    playerNum = i;
+                    break;
+                }
+            }
+            if (playerNum == 0) {
+                text.setText("Поздравляю! Вы заняли 1-e место!");
+            } else {
+                text.setText("Вы заняли " + (playerNum + 1) + "-е место.");
             }
         }
     }

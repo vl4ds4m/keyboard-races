@@ -110,8 +110,11 @@ class Player implements Runnable {
             }
 
             case NEED_COUNTS -> {
-                writer.writeInt(data.getInputCharsCount());
-                writer.writeInt(data.getErrorsCount());
+                synchronized (data) {
+                    writer.writeInt(data.getInputCharsCount());
+                    writer.writeInt(data.getErrorsCount());
+                    writer.writeInt(data.getFinishTime());
+                }
                 writer.flush();
             }
 

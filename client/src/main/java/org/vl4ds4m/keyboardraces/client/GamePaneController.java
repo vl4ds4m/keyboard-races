@@ -92,7 +92,13 @@ public class GamePaneController {
 
                 int textLength = player.getText().length().get();
                 int progress = textLength != 0 ? playerData.getInputCharsCount() * 100 / textLength : 0;
-                int time = GameSettings.GAME_DURATION_TIME - Integer.parseInt(player.getRemainTimeProperty().get());
+
+                int time = GameSettings.GAME_DURATION_TIME;
+                if (playerData.getFinishTime() == -1) {
+                    time -= Integer.parseInt(player.getRemainTimeProperty().get());
+                } else {
+                    time -= playerData.getFinishTime();
+                }
                 int speed = time != 0 ? playerData.getInputCharsCount() * 60 / time : 0;
 
                 return playerData.getName() +
@@ -125,8 +131,10 @@ public class GamePaneController {
 
                 wordWrong = false;
                 currentWordNum = 0;
-                player.getData().setInputCharsCount(0);
-                player.getData().setErrorsCount(0);
+                synchronized (player.getData()) {
+                    player.getData().setInputCharsCount(0);
+                    player.getData().setErrorsCount(0);
+                }
                 maxLenRightWord = 0;
                 wrongCharPos = -1;
 
@@ -162,37 +170,41 @@ public class GamePaneController {
     private class InputCharsListener implements ChangeListener<String> {
         @Override
         public void changed(ObservableValue<? extends String> observableWord, String oldWord, String newWord) {
-            System.out.println(oldWord + " -> " + newWord);
+            synchronized (player.getData()) {
+                System.out.println(oldWord + " -> " + newWord);
 
-            int lastCharPos = newWord.length() - 1;
-            String currentWord = words.get(currentWordNum);
+                int lastCharPos = newWord.length() - 1;
+                String currentWord = words.get(currentWordNum);
 
-            if (!wordWrong) {
-                if (currentWord.startsWith(newWord)) {
-                    if (newWord.length() > maxLenRightWord) {
-                        player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
-                        ++maxLenRightWord;
+                if (!wordWrong) {
+                    if (currentWord.startsWith(newWord)) {
+                        if (newWord.length() > maxLenRightWord) {
+                            player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
+                            ++maxLenRightWord;
 
-                        if (currentWord.equals(newWord)) {
-                            maxLenRightWord = 0;
-                            if (currentWordNum == words.size() - 1) {
-                                player.getGameStateProperty().set(GameState.STOPPED);
-                            } else {
-                                ++currentWordNum;
+                            if (currentWord.equals(newWord)) {
+                                maxLenRightWord = 0;
+                                if (currentWordNum == words.size() - 1) {
+                                    player.getData().setFinishTime(
+                                            Integer.parseInt(player.getRemainTimeProperty().get()));
+                                    player.getGameStateProperty().set(GameState.STOPPED);
+                                } else {
+                                    ++currentWordNum;
+                                }
+
+                                Platform.runLater(() -> input.setText(""));
                             }
-
-                            Platform.runLater(() -> input.setText(""));
                         }
+                    } else {
+                        wordWrong = true;
+                        player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
+                        wrongCharPos = lastCharPos;
                     }
                 } else {
-                    wordWrong = true;
-                    player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
-                    wrongCharPos = lastCharPos;
-                }
-            } else {
-                if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos) {
-                    wordWrong = false;
-                    wrongCharPos = -1;
+                    if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos) {
+                        wordWrong = false;
+                        wrongCharPos = -1;
+                    }
                 }
             }
         }

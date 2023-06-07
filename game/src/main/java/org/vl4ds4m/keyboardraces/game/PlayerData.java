@@ -9,6 +9,7 @@ public class PlayerData implements Serializable {
     private int errorsCount = 0;
     private boolean connected = true;
     private boolean currentPlayer = false;
+    private int finishTime = -1;
 
     public PlayerData(String name) {
         this.name = name;
@@ -26,12 +27,16 @@ public class PlayerData implements Serializable {
         return errorsCount;
     }
 
+    public boolean connected() {
+        return connected;
+    }
+
     public boolean currentPlayer() {
         return currentPlayer;
     }
 
-    public boolean connected() {
-        return connected;
+    public int getFinishTime() {
+        return finishTime;
     }
 
     public void setInputCharsCount(int inputCharsCount) {
@@ -50,7 +55,21 @@ public class PlayerData implements Serializable {
         this.currentPlayer = currentPlayer;
     }
 
+    public void setFinishTime(int finishTime) {
+        this.finishTime = finishTime;
+    }
+
     public static final Comparator<PlayerData> RATE_COMP = (o1, o2) -> {
+        if (o1.finishTime != -1 || o2.finishTime != -1) {
+            if (o1.finishTime == -1) {
+                return 1;
+            }
+            if (o2.finishTime == -1) {
+                return -1;
+            }
+            return o2.finishTime - o1.finishTime;
+        }
+
         if (!o1.connected || !o2.connected) {
             if (o1.connected) {
                 return -1;

@@ -192,9 +192,11 @@ public class GameSession {
 
             int inputCharsCount = reader.readInt();
             int errorsCount = reader.readInt();
+            int finishTime = reader.readInt();
             synchronized (GameSession.this) {
                 playerDataList.get(playerNum).setInputCharsCount(inputCharsCount);
                 playerDataList.get(playerNum).setErrorsCount(errorsCount);
+                playerDataList.get(playerNum).setFinishTime(finishTime);
             }
 
             writer.writeObject(ServerCommand.DATA_LIST);

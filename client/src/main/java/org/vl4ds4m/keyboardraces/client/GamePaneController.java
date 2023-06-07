@@ -9,6 +9,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.text.Text;
 import org.vl4ds4m.keyboardraces.game.GameSettings;
 import org.vl4ds4m.keyboardraces.game.GameState;
 import org.vl4ds4m.keyboardraces.game.PlayerData;
@@ -29,6 +31,8 @@ public class GamePaneController {
     private Label playersResults;
     @FXML
     private Button newGameButton;
+    @FXML
+    private FlowPane wordsPane;
 
     @FXML
     private void playAgain() {
@@ -44,7 +48,8 @@ public class GamePaneController {
         newGameButton.setVisible(false);
 
         text.setText("Текст");
-        text.setDisable(true);
+        text.setVisible(true);
+
         input.setDisable(true);
 
         timerDescr.setText("Ожидание игроков");
@@ -56,12 +61,6 @@ public class GamePaneController {
 
         new Thread(player).start();
     }
-
-    private List<String> words;
-    private int currentWordNum;
-    private boolean wordWrong;
-    private int wrongCharPos;
-    private int maxLenRightWord;
 
     private static class ConnectionListener implements ChangeListener<String> {
         @Override
@@ -125,68 +124,22 @@ public class GamePaneController {
         }
     }
 
-    private class GameStateListener implements ChangeListener<GameState> {
-        @Override
-        public void changed(ObservableValue<? extends GameState> observableValue, GameState gameState, GameState t1) {
-            if (t1 == GameState.READY) {
-                text.textProperty().bind(player.getText());
-                timerDescr.setText("Игра начнется через:");
+    private List<String> words;
 
-            } else if (t1 == GameState.STARTED) {
-                text.setDisable(false);
-                input.setDisable(false);
-                input.requestFocus();
-                timerDescr.setText("Игра закончится через:");
-
-                words = new ArrayList<>(List.of(text.getText().split(" ")));
-                for (int i = 0; i < words.size() - 1; ++i) {
-                    words.set(i, words.get(i) + " ");
-                }
-
-                wordWrong = false;
-                currentWordNum = 0;
-                synchronized (player.getData()) {
-                    player.getData().setInputCharsCount(0);
-                    player.getData().setErrorsCount(0);
-                }
-                maxLenRightWord = 0;
-                wrongCharPos = -1;
-
-                input.textProperty().addListener(new InputCharsListener());
-
-            } else if (t1 == GameState.STOPPED) {
-                input.setDisable(true);
-
-                timerDescr.setText("Игра окончена");
-                timer.textProperty().unbind();
-                timer.setText("");
-
-                text.textProperty().unbind();
-                printResult();
-
-                newGameButton.setVisible(true);
-                newGameButton.setDisable(false);
-            }
-        }
-
-        private void printResult() {
-            int playerNum = -1;
-            for (int i = 0; i < player.getPlayerDataList().size(); ++i) {
-                if (player.getPlayerDataList().get(i).currentPlayer()) {
-                    playerNum = i;
-                    break;
-                }
-            }
-            if (playerNum == 0) {
-                text.setText("Поздравляю! Вы заняли 1-e место!");
-            } else {
-                text.setText("Вы заняли " + (playerNum + 1) + "-е место.");
-            }
-        }
-    }
-
-    // TODO Lock ctrl+V and selection text
     private class InputCharsListener implements ChangeListener<String> {
+        private int currentWordNum = 0;
+        private boolean wordWrong = false;
+        private int wrongCharPos = -1;
+        private int maxLenRightWord = 0;
+
+        private void initVar() {
+            currentWordNum = 0;
+            wordWrong = false;
+            wrongCharPos = -1;
+            maxLenRightWord = 0;
+        }
+
+        // TODO Lock ctrl+V and selection text
         @Override
         public void changed(ObservableValue<? extends String> observableWord, String oldWord, String newWord) {
             synchronized (player.getData()) {
@@ -225,6 +178,72 @@ public class GamePaneController {
                         wrongCharPos = -1;
                     }
                 }
+            }
+        }
+    }
+
+    private final InputCharsListener inputCharsListener = new InputCharsListener();
+
+    private class GameStateListener implements ChangeListener<GameState> {
+        @Override
+        public void changed(ObservableValue<? extends GameState> observableValue, GameState gameState, GameState t1) {
+            if (t1 == GameState.READY) {
+                text.setVisible(false);
+
+                timerDescr.setText("Игра начнется через:");
+
+                words = new ArrayList<>(List.of(player.getText().get().split(" ")));
+
+                wordsPane.getChildren().clear();
+                for (String word : words) {
+                    wordsPane.getChildren().add(new Text(word));
+                }
+
+                for (int i = 0; i < words.size() - 1; ++i) {
+                    words.set(i, words.get(i) + " ");
+                }
+
+                wordsPane.setVisible(true);
+
+            } else if (t1 == GameState.STARTED) {
+                input.clear();
+                input.setDisable(false);
+                input.requestFocus();
+                timerDescr.setText("Игра закончится через:");
+
+                inputCharsListener.initVar();
+                input.textProperty().addListener(inputCharsListener);
+
+            } else if (t1 == GameState.STOPPED) {
+                input.setDisable(true);
+                input.textProperty().removeListener(inputCharsListener);
+
+                wordsPane.setVisible(false);
+
+                timerDescr.setText("Игра окончена");
+                timer.textProperty().unbind();
+                timer.setText("");
+
+                text.setVisible(true);
+                printResult();
+
+                newGameButton.setVisible(true);
+                newGameButton.setDisable(false);
+            }
+        }
+
+        private void printResult() {
+            int playerNum = -1;
+            for (int i = 0; i < player.getPlayerDataList().size(); ++i) {
+                if (player.getPlayerDataList().get(i).currentPlayer()) {
+                    playerNum = i;
+                    break;
+                }
+            }
+            if (playerNum == 0) {
+                text.setText("Поздравляю! Вы заняли 1-e место!");
+            } else {
+                text.setText("Вы заняли " + (playerNum + 1) + "-е место.");
             }
         }
     }

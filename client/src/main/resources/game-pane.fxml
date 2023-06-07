@@ -66,21 +66,27 @@
 
         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="350.0" stroke="BLACK" strokeType="INSIDE"
                    width="800.0"/>
-        <Label fx:id="text" alignment="CENTER" lineSpacing="4.0" maxHeight="300.0" maxWidth="750.0" wrapText="true"
-               text="TEXT">
+
+        <Label fx:id="text" alignment="CENTER" disable="true" lineSpacing="4.0" maxHeight="300.0" maxWidth="750.0"
+               text="TEXT" wrapText="true">
             <font>
                 <Font size="16.0"/>
             </font>
         </Label>
 
+        <FlowPane fx:id="wordsPane" alignment="CENTER" columnHalignment="CENTER" hgap="5.0" maxHeight="300.0"
+                  maxWidth="750.0" prefWrapLength="300.0"/>
+
         <StackPane alignment="BOTTOM_CENTER" maxHeight="350.0" maxWidth="800.0">
-            <padding>
-                <Insets bottom="100.0"/>
-            </padding>
-            <Button disable="true" text="Новая игра" fx:id="newGameButton" onAction="#playAgain">
+
+            <Button fx:id="newGameButton" disable="true" onAction="#playAgain" text="Новая игра">
                 <font>
                     <Font size="16.0"/>
                 </font>
+
+                <StackPane.margin>
+                    <Insets bottom="80.0"/>
+                </StackPane.margin>
             </Button>
         </StackPane>
 

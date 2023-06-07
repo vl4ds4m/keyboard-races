@@ -179,7 +179,7 @@ public class GamePaneController {
                         } else if (newWord.length() > oldWord.length()) {
                             leftPart.setText(leftPart.getText() + rightPart.getText().charAt(0));
                             rightPart.setText(rightPart.getText().substring(1));
-                        } else if (newWord.length() < oldWord.length() && newWord.length() > 0) {
+                        } else if (newWord.length() < oldWord.length() && leftPart.getText().length() > 0) {
                             rightPart.setText(leftPart.getText().charAt(leftPart.getText().length() - 1) +
                                     rightPart.getText());
                             leftPart.setText(leftPart.getText().substring(0, leftPart.getText().length() - 1));

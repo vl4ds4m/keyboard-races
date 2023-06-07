@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.vl4ds4m.keyboardraces.game.GameSettings;
 import org.vl4ds4m.keyboardraces.game.GameState;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class GamePaneController {
     @FXML
-    private Label text;
+    private Label promptText;
     @FXML
     private TextField input;
     @FXML
@@ -47,8 +48,8 @@ public class GamePaneController {
         newGameButton.setDisable(true);
         newGameButton.setVisible(false);
 
-        text.setText("Текст");
-        text.setVisible(true);
+        promptText.setText("Текст");
+        promptText.setVisible(true);
 
         input.setDisable(true);
 
@@ -132,11 +133,13 @@ public class GamePaneController {
         private int wrongCharPos = -1;
         private int maxLenRightWord = 0;
 
-        private void initVar() {
+        private void initialize() {
             currentWordNum = 0;
             wordWrong = false;
             wrongCharPos = -1;
             maxLenRightWord = 0;
+
+            ((Text) wordsPane.getChildren().get(currentWordNum)).setUnderline(true);
         }
 
         // TODO Lock ctrl+V and selection text
@@ -156,12 +159,15 @@ public class GamePaneController {
 
                             if (currentWord.equals(newWord)) {
                                 maxLenRightWord = 0;
+                                ((Text) wordsPane.getChildren().get(currentWordNum)).setUnderline(false);
+
                                 if (currentWordNum == words.size() - 1) {
                                     player.getData().setFinishTime(
                                             Integer.parseInt(player.getRemainTimeProperty().get()));
                                     player.getGameStateProperty().set(GameState.STOPPED);
                                 } else {
                                     ++currentWordNum;
+                                    ((Text) wordsPane.getChildren().get(currentWordNum)).setUnderline(true);
                                 }
 
                                 Platform.runLater(() -> input.setText(""));
@@ -188,16 +194,19 @@ public class GamePaneController {
         @Override
         public void changed(ObservableValue<? extends GameState> observableValue, GameState gameState, GameState t1) {
             if (t1 == GameState.READY) {
-                text.setVisible(false);
+                promptText.setVisible(false);
 
                 timerDescr.setText("Игра начнется через:");
 
                 words = new ArrayList<>(List.of(player.getText().get().split(" ")));
 
                 wordsPane.getChildren().clear();
-                for (String word : words) {
-                    wordsPane.getChildren().add(new Text(word));
-                }
+                words.forEach(word -> {
+                    Text text = new Text(word);
+                    text.setFont(Font.font(16.0));
+                    text.setOpacity(0.2);
+                    wordsPane.getChildren().add(text);
+                });
 
                 for (int i = 0; i < words.size() - 1; ++i) {
                     words.set(i, words.get(i) + " ");
@@ -211,7 +220,9 @@ public class GamePaneController {
                 input.requestFocus();
                 timerDescr.setText("Игра закончится через:");
 
-                inputCharsListener.initVar();
+                wordsPane.getChildren().forEach(text -> text.setOpacity(1.0));
+
+                inputCharsListener.initialize();
                 input.textProperty().addListener(inputCharsListener);
 
             } else if (t1 == GameState.STOPPED) {
@@ -224,7 +235,7 @@ public class GamePaneController {
                 timer.textProperty().unbind();
                 timer.setText("");
 
-                text.setVisible(true);
+                promptText.setVisible(true);
                 printResult();
 
                 newGameButton.setVisible(true);
@@ -241,9 +252,9 @@ public class GamePaneController {
                 }
             }
             if (playerNum == 0) {
-                text.setText("Поздравляю! Вы заняли 1-e место!");
+                promptText.setText("Поздравляю! Вы заняли 1-e место!");
             } else {
-                text.setText("Вы заняли " + (playerNum + 1) + "-е место.");
+                promptText.setText("Вы заняли " + (playerNum + 1) + "-е место.");
             }
         }
     }

@@ -53,6 +53,7 @@ public class GamePaneController {
         promptText.setText("Текст");
         promptText.setVisible(true);
 
+        input.clear();
         input.setDisable(true);
 
         timerDescr.setText("Ожидание игроков");

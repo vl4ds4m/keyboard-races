@@ -48,6 +48,7 @@ public class GamePaneController {
         newGameButton.setDisable(true);
         newGameButton.setVisible(false);
 
+        promptText.setDisable(true);
         promptText.setText("Текст");
         promptText.setVisible(true);
 
@@ -152,6 +153,8 @@ public class GamePaneController {
                 Text leftPart = (Text) wordsPane.getChildren().get(currentWordNum);
                 Text rightPart = (Text) wordsPane.getChildren().get(currentWordNum + 1);
                 String currentWord = words.get(currentWordNum);
+
+                System.out.println("<" + leftPart.getText() + "> -> <" + rightPart.getText() + ">");
 
                 if (!wordWrong) {
                     if (currentWord.startsWith(newWord)) {
@@ -260,8 +263,9 @@ public class GamePaneController {
                 timer.textProperty().unbind();
                 timer.setText("");
 
-                promptText.setVisible(true);
+                promptText.setDisable(false);
                 printResult();
+                promptText.setVisible(true);
 
                 newGameButton.setVisible(true);
                 newGameButton.setDisable(false);

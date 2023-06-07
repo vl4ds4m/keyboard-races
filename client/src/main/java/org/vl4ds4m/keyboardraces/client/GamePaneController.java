@@ -135,79 +135,103 @@ public class GamePaneController {
         private int currentWordNum = 0;
         private boolean wordWrong = false;
         private int wrongCharPos = -1;
-        private int maxLenRightWord = 0;
+        private int maxLengthRightWord = 0;
 
         private void initialize() {
             currentWordNum = 0;
             wordWrong = false;
             wrongCharPos = -1;
-            maxLenRightWord = 0;
+            maxLengthRightWord = 0;
 
             ((Text) wordsPane.getChildren().get(currentWordNum)).setFill(Color.GREEN);
             ((Text) wordsPane.getChildren().get(currentWordNum)).setFont(BOLD_FONT);
             ((Text) wordsPane.getChildren().get(currentWordNum + 1)).setFont(BOLD_FONT);
         }
 
-        @Override
-        public void changed(ObservableValue<? extends String> observableWord, String oldWord, String newWord) {
-            synchronized (player.getData()) {
-                System.out.println(oldWord + " -> " + newWord);
+        private String oldWord;
+        private String newWord;
+        private Text leftPart;
+        private Text rightPart;
 
-                int lastCharPos = newWord.length() - 1;
+        @Override
+        public void changed(ObservableValue<? extends String> observableWord, String oldValue, String newValue) {
+            synchronized (player.getData()) {
+                oldWord = oldValue;
+                newWord = newValue;
+
+                leftPart = (Text) wordsPane.getChildren().get(currentWordNum);
+                rightPart = (Text) wordsPane.getChildren().get(currentWordNum + 1);
+
                 String currentWord = words.get(currentWordNum);
 
-                Text leftPart = (Text) wordsPane.getChildren().get(currentWordNum);
-                Text rightPart = (Text) wordsPane.getChildren().get(currentWordNum + 1);
-
+                System.out.println(oldWord + " -> " + newWord);
                 System.out.println("<" + leftPart.getText() + "> -> <" + rightPart.getText() + ">");
 
                 if (!wordWrong) {
                     if (currentWord.startsWith(newWord)) {
-                        if (newWord.length() > oldWord.length()) {
-                            leftPart.setText(leftPart.getText() + rightPart.getText().charAt(0));
-                            rightPart.setText(rightPart.getText().substring(1));
-                        } else if (newWord.length() < oldWord.length() && leftPart.getText().length() > 0) {
-                            rightPart.setText(leftPart.getText().charAt(leftPart.getText().length() - 1) +
-                                    rightPart.getText());
-                            leftPart.setText(leftPart.getText().substring(0, leftPart.getText().length() - 1));
-                        }
-
-                        if (newWord.length() > maxLenRightWord) {
-                            player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
-                            ++maxLenRightWord;
+                        changeWordSplit();
+                        if (newWord.length() > maxLengthRightWord) {
+                            increaseInputCharsCount();
                             if (currentWord.equals(newWord)) {
-                                maxLenRightWord = 0;
-
-                                leftPart.setFill(Color.BLACK);
-                                leftPart.setFont(USUAL_FONT);
-
-                                if (currentWordNum == words.size() - 1) {
-                                    player.getData().setFinishTime(
-                                            Integer.parseInt(player.getRemainTimeProperty().get()));
-                                    player.getGameStateProperty().set(GameState.STOPPED);
-                                } else {
-                                    ++currentWordNum;
-                                    rightPart.setFill(Color.GREEN);
-                                    ((Text) wordsPane.getChildren().get(currentWordNum + 1)).setFont(BOLD_FONT);
-                                }
-
-                                Platform.runLater(() -> input.setText(""));
+                                setNextWord();
                             }
                         }
                     } else {
-                        wordWrong = true;
-                        player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
-                        wrongCharPos = lastCharPos;
-                        leftPart.setFill(Color.RED);
+                        setError();
                     }
                 } else {
-                    if (currentWord.startsWith(newWord) && newWord.length() == wrongCharPos) {
-                        wordWrong = false;
-                        wrongCharPos = -1;
-                        leftPart.setFill(Color.GREEN);
+                    if (newWord.length() == wrongCharPos) {
+                        unsetError();
                     }
                 }
             }
+        }
+
+        private void changeWordSplit() {
+            if (newWord.length() > oldWord.length()) {
+                leftPart.setText(leftPart.getText() + rightPart.getText().charAt(0));
+                rightPart.setText(rightPart.getText().substring(1));
+            } else if (newWord.length() < oldWord.length() && leftPart.getText().length() > 0) {
+                rightPart.setText(leftPart.getText().charAt(leftPart.getText().length() - 1) +
+                        rightPart.getText());
+                leftPart.setText(leftPart.getText().substring(0, leftPart.getText().length() - 1));
+            }
+        }
+
+        private void increaseInputCharsCount() {
+            player.getData().setInputCharsCount(player.getData().getInputCharsCount() + 1);
+            ++maxLengthRightWord;
+        }
+
+        private void setNextWord() {
+            maxLengthRightWord = 0;
+
+            leftPart.setFill(Color.BLACK);
+            leftPart.setFont(USUAL_FONT);
+
+            if (currentWordNum == words.size() - 1) {
+                player.getData().setFinishTime(Integer.parseInt(player.getRemainTimeProperty().get()));
+                player.getGameStateProperty().set(GameState.STOPPED);
+            } else {
+                ++currentWordNum;
+                rightPart.setFill(Color.GREEN);
+                ((Text) wordsPane.getChildren().get(currentWordNum + 1)).setFont(BOLD_FONT);
+            }
+
+            Platform.runLater(() -> input.setText(""));
+        }
+
+        private void setError() {
+            wordWrong = true;
+            player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
+            wrongCharPos = newWord.length() - 1;
+            leftPart.setFill(Color.RED);
+        }
+
+        private void unsetError() {
+            wordWrong = false;
+            wrongCharPos = -1;
+            leftPart.setFill(Color.GREEN);
         }
     }
 

@@ -11,6 +11,5 @@ public enum ServerCommand implements Serializable {
     DATA_LIST,
     READY,
     START,
-    STOP,
-    ERROR
+    STOP
 }

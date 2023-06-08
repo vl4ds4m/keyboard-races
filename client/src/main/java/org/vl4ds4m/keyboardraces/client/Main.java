@@ -37,8 +37,5 @@ public class Main extends Application {
 
         stage.setMinHeight(pane.getMinHeight() + windowPadding);
         stage.setMinWidth(pane.getMinWidth());
-
-        stage.setMaxHeight(pane.getMaxHeight() + windowPadding);
-        stage.setMaxWidth(pane.getMaxWidth());
     }
 }

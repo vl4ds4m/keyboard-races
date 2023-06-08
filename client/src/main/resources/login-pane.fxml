@@ -3,22 +3,46 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<VBox alignment="TOP_CENTER" maxHeight="320.0" maxWidth="360.0" minHeight="320.0" minWidth="360.0" spacing="30.0"
-      xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="org.vl4ds4m.keyboardraces.client.LoginPaneController">
+<StackPane minHeight="320.0" minWidth="360.0" xmlns="http://javafx.com/javafx/17.0.2-ea"
+           xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.vl4ds4m.keyboardraces.client.LoginPaneController">
 
-    <TextField fx:id="serverAddress" promptText="Адрес сервера" text="localhost"/>
+    <VBox alignment="TOP_CENTER" maxHeight="320.0" maxWidth="360.0" minHeight="320.0" minWidth="360.0" spacing="30.0">
 
-    <TextField fx:id="serverPort" promptText="Порт" text="5619"/>
+        <TextField fx:id="serverAddress" promptText="Адрес сервера" text="localhost">
+            <font>
+                <Font size="16.0"/>
+            </font>
+        </TextField>
 
-    <TextField fx:id="playerName" promptText="Ваше имя" text="Игрок"/>
+        <TextField fx:id="serverPort" promptText="Порт" text="5619">
+            <font>
+                <Font size="16.0"/>
+            </font>
+        </TextField>
 
-    <Button fx:id="startButton" alignment="CENTER" onAction="#clickStartButton" text="Начать игру"/>
+        <TextField fx:id="playerName" promptText="Ваше имя" text="Игрок">
+            <font>
+                <Font size="16.0"/>
+            </font>
+        </TextField>
 
-    <Button alignment="CENTER" onAction="#showInfo" text="Об игре"/>
+        <Button fx:id="startButton" alignment="CENTER" onAction="#clickStartButton" text="Начать игру">
+            <font>
+                <Font size="16.0"/>
+            </font>
+        </Button>
 
-    <padding>
-        <Insets left="30.0" right="30.0" top="30.0"/>
-    </padding>
-</VBox>
+        <Button alignment="CENTER" onAction="#showInfo" text="Об игре">
+            <font>
+                <Font size="16.0"/>
+            </font>
+        </Button>
+
+        <padding>
+            <Insets left="30.0" right="30.0" top="30.0"/>
+        </padding>
+    </VBox>
+
+</StackPane>

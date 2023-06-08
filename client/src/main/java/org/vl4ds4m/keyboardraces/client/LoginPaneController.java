@@ -2,6 +2,7 @@ package org.vl4ds4m.keyboardraces.client;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -48,5 +49,20 @@ public class LoginPaneController {
 
         stage.close();
         stage.show();
+    }
+
+    @FXML
+    private void showInfo() {
+        Alert info = new Alert(Alert.AlertType.INFORMATION);
+
+        info.setTitle("Keyboard Races");
+        info.setHeaderText("Информация об игре");
+        info.setContentText("""
+                Игра 'Клавогонки' - соревновательная многопользовательская игра,
+                в которой Вы должны быстрее свои соперников набрать текст на клавиатуре.
+                
+                Автор реализации: Самсонов Владислав (vl4d.s4m@gmail.com).""");
+
+        info.show();
     }
 }

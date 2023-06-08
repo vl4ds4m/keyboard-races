@@ -16,7 +16,7 @@
 
     <Button fx:id="startButton" alignment="CENTER" onAction="#clickStartButton" text="Начать игру"/>
 
-    <Button alignment="CENTER" text="Об игре"/>
+    <Button alignment="CENTER" onAction="#showInfo" text="Об игре"/>
 
     <padding>
         <Insets left="30.0" right="30.0" top="30.0"/>

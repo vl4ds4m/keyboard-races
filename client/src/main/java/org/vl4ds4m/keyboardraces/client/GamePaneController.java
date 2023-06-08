@@ -88,61 +88,10 @@ public class GamePaneController {
         @Override
         public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Соединение с сервером потеряно.");
+            alert.setTitle("Keyboard Races");
+            alert.setHeaderText("Ошибка соединения с сервером.");
             alert.setContentText("Причина: " + t1);
             alert.show();
-        }
-    }
-
-    private class ResultsListener implements ListChangeListener<PlayerData> {
-        @Override
-        public void onChanged(Change<? extends PlayerData> change) {
-            int place = 1;
-            StringBuilder results = new StringBuilder();
-
-            for (int i = 0; i < player.getPlayerDataList().size(); ++i) {
-                PlayerData current = player.getPlayerDataList().get(i);
-                if (i == 0) {
-                    results.append(place).append(".\t").append(getPlayerResult(current));
-                } else {
-                    results.append("\n");
-                    PlayerData previous = player.getPlayerDataList().get(i - 1);
-                    if (PlayerData.RATE_COMP.compare(current, previous) == 0) {
-                        results.append("\t").append(getPlayerResult(current));
-                    } else {
-                        results.append(++place).append(".\t").append(getPlayerResult(current));
-                    }
-                }
-            }
-
-            playersResults.setText(results.toString());
-        }
-
-        private String getPlayerResult(PlayerData playerData) {
-            if (playerData.connected()) {
-                if (player.getGameStateProperty().get() == GameState.INIT ||
-                        player.getGameStateProperty().get() == GameState.READY) {
-                    return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "");
-                }
-
-                int textLength = player.getText().length().get();
-                int progress = textLength != 0 ? playerData.getInputCharsCount() * 100 / textLength : 0;
-
-                int time = GameSettings.GAME_DURATION_TIME;
-                if (playerData.getFinishTime() == -1) {
-                    time -= Integer.parseInt(player.getRemainTimeProperty().get());
-                } else {
-                    time -= playerData.getFinishTime();
-                }
-                int speed = time != 0 ? playerData.getInputCharsCount() * 60 / time : 0;
-
-                return playerData.getName() +
-                        (playerData.currentPlayer() ? " (Вы), " : ", ") +
-                        progress + " % готово" +
-                        ", ошибки: " + playerData.getErrorsCount() +
-                        ", " + speed + " сим/мин.";
-            }
-            return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "") + ", соединение потеряно.";
         }
     }
 
@@ -250,9 +199,9 @@ public class GamePaneController {
         }
     }
 
-    private final InputCharsListener inputCharsListener = new InputCharsListener();
-
     private class GameStateListener implements ChangeListener<GameState> {
+        private final InputCharsListener inputCharsListener = new InputCharsListener();
+
         @Override
         public void changed(ObservableValue<? extends GameState> observableValue, GameState gameState, GameState t1) {
             if (t1 == GameState.READY) {
@@ -324,6 +273,58 @@ public class GamePaneController {
             } else {
                 promptText.setText("Вы заняли " + (playerNum + 1) + "-е место.");
             }
+        }
+    }
+
+    private class ResultsListener implements ListChangeListener<PlayerData> {
+        @Override
+        public void onChanged(Change<? extends PlayerData> change) {
+            int place = 1;
+            StringBuilder results = new StringBuilder();
+
+            for (int i = 0; i < player.getPlayerDataList().size(); ++i) {
+                PlayerData current = player.getPlayerDataList().get(i);
+                if (i == 0) {
+                    results.append(place).append(".\t").append(getPlayerResult(current));
+                } else {
+                    results.append("\n");
+                    PlayerData previous = player.getPlayerDataList().get(i - 1);
+                    if (PlayerData.RATE_COMP.compare(current, previous) == 0) {
+                        results.append("\t").append(getPlayerResult(current));
+                    } else {
+                        results.append(++place).append(".\t").append(getPlayerResult(current));
+                    }
+                }
+            }
+
+            playersResults.setText(results.toString());
+        }
+
+        private String getPlayerResult(PlayerData playerData) {
+            if (playerData.connected()) {
+                if (player.getGameStateProperty().get() == GameState.INIT ||
+                        player.getGameStateProperty().get() == GameState.READY) {
+                    return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "");
+                }
+
+                int textLength = player.getText().length().get();
+                int progress = textLength != 0 ? playerData.getInputCharsCount() * 100 / textLength : 0;
+
+                int time = GameSettings.GAME_DURATION_TIME;
+                if (playerData.getFinishTime() == -1) {
+                    time -= Integer.parseInt(player.getRemainTimeProperty().get());
+                } else {
+                    time -= playerData.getFinishTime();
+                }
+                int speed = time != 0 ? playerData.getInputCharsCount() * 60 / time : 0;
+
+                return playerData.getName() +
+                        (playerData.currentPlayer() ? " (Вы), " : ", ") +
+                        progress + " % готово" +
+                        ", ошибки: " + playerData.getErrorsCount() +
+                        ", " + speed + " сим/мин.";
+            }
+            return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "") + ", соединение потеряно.";
         }
     }
 }

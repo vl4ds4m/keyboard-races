@@ -63,8 +63,8 @@ public class Server {
                 }
             } catch (SocketException e) {
                 System.out.println("ServerSocket has been closed.");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                System.out.println("An exception has been thrown: " + e.getMessage());
             }
         }
     }

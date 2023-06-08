@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GameSession {
     private static final String TEXTS_DIR = "/Texts/";
-    private static final List<String> TEXTS = List.of(/*"email-text.txt",*/ "hello.txt", "example.txt");
+    private static final List<String> TEXTS = List.of("vk.txt", "msk.txt", "Elon.txt", "minecraft.txt", "titanic.txt");
     private final ScheduledExecutorService gameExecutor = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService playersExecutor = Executors.newFixedThreadPool(GameSettings.MAX_PLAYERS_COUNT);
     private final List<PlayerHandler> handlers = new ArrayList<>();
@@ -24,13 +24,13 @@ public class GameSession {
     private GameState gameState = GameState.INIT;
     private volatile int remainTime = GameSettings.AWAIT_TIME;
 
-    public GameSession() {
+    public GameSession() throws Exception {
         int textNum = new Random().nextInt(TEXTS.size());
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(
                 GameSession.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))))) {
             text = reader.readLine();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new Exception(e);
         }
     }
 

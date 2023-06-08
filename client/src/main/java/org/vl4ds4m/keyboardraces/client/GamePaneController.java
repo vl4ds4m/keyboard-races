@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -24,8 +25,6 @@ public class GamePaneController {
     @FXML
     private Label promptText;
     @FXML
-    private TextField input;
-    @FXML
     private Label timer;
     @FXML
     private Label timerDescr;
@@ -35,6 +34,23 @@ public class GamePaneController {
     private Button newGameButton;
     @FXML
     private FlowPane wordsPane;
+    @FXML
+    private StackPane inputPane;
+    private final TextField input = new TextField() {
+        @Override
+        public void paste() {
+        }
+
+    };
+
+    @FXML
+    private void initialize() {
+        input.setPromptText("Ввод");
+        input.setMaxWidth(750.0);
+        input.setFont(Font.font(16.0));
+
+        inputPane.getChildren().add(input);
+    }
 
     @FXML
     private void playAgain() {

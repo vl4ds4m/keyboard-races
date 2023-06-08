@@ -167,8 +167,9 @@ public class GamePaneController {
         }
 
         private void increaseInputCharsCount() {
+            player.getData().setInputCharsCount(
+                    player.getData().getInputCharsCount() + (newWord.length() - maxLengthRightWord));
             maxLengthRightWord = newWord.length();
-            player.getData().setInputCharsCount(maxLengthRightWord);
         }
 
         private void setNextWord() {

@@ -35,10 +35,8 @@ public class GameSession {
     }
 
     public synchronized boolean addPlayer(Socket playerSocket) {
-        if (gameState == GameState.INIT) {
-            PlayerHandler handler = new PlayerHandler(playerSocket, handlers.size());
-
-            playerDataList.add(new PlayerData("NewPlayer"));
+        if (handlers.size() < GameSettings.MAX_PLAYERS_COUNT && gameState == GameState.INIT) {
+            PlayerHandler handler = new PlayerHandler(playerSocket);
             handlers.add(handler);
             playersExecutor.execute(handler);
 
@@ -74,6 +72,8 @@ public class GameSession {
                     }
                 }
 
+                playerDataList.forEach(System.out::println);
+
                 for (PlayerHandler handler : handlers) {
                     synchronized (handler) {
                         handler.notify();
@@ -90,8 +90,8 @@ public class GameSession {
 
         private boolean playersFinishedGame() {
             boolean playersFinishedGame = true;
-            for (PlayerData playerData : playerDataList) {
-                if (playerData.connected() && playerData.getInputCharsCount() < text.length()) {
+            for (PlayerHandler playerHandler : handlers) {
+                if (playerHandler.data.connected() && playerHandler.data.getInputCharsCount() < text.length()) {
                     playersFinishedGame = false;
                     break;
                 }
@@ -102,11 +102,10 @@ public class GameSession {
 
     private class PlayerHandler implements Runnable {
         private final Socket socket;
-        private final int playerNum;
+        private PlayerData data = new PlayerData("NewPlayer");
 
-        private PlayerHandler(Socket socket, int playerNum) {
+        private PlayerHandler(Socket socket) {
             this.socket = socket;
-            this.playerNum = playerNum;
         }
 
         @Override
@@ -115,27 +114,45 @@ public class GameSession {
                  ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream());
                  ObjectInputStream reader = new ObjectInputStream(socket.getInputStream())) {
 
-                initGame(reader, writer);
                 System.out.println(this + " INIT");
+                initGame(reader, writer);
 
-                synchronized (this) {
-                    while (gameState != GameState.STOPPED) {
-                        GameState currentState = gameState;
-                        while (currentState == gameState) {
-                            updateGame(reader, writer);
-                            this.wait();
-                        }
-                        writer.writeObject(stateToCommand(gameState));
+                while (gameState != GameState.STOPPED) {
+                    GameState currentState = gameState;
+
+                    if (currentState == GameState.READY) {
+                        writer.writeObject(ServerCommand.PLAYER_NUM);
+                        writer.writeInt(playerDataList.indexOf(data));
                         writer.flush();
                     }
+
+                    while (currentState == gameState) {
+                        if (currentState == GameState.INIT || currentState == GameState.READY) {
+                            sendGameData(writer);
+                        } else {
+                            updateGame(reader, writer);
+                        }
+                        synchronized (this) {
+                            this.wait();
+                        }
+                    }
+
+                    writer.writeObject(stateToCommand(gameState));
+                    writer.flush();
                 }
 
                 System.out.println(this + " EXIT");
 
             } catch (IOException | ClassNotFoundException | InterruptedException e) {
                 System.out.println(this + " DISCONNECT, message: " + e);
+
                 synchronized (GameSession.this) {
-                    playerDataList.get(playerNum).setConnected(false);
+                    if (gameState == GameState.INIT) {
+                        handlers.remove(this);
+                        playerDataList.remove(data);
+                    } else {
+                        data.setConnected(false);
+                    }
                 }
             }
         }
@@ -161,14 +178,12 @@ public class GameSession {
 
             String playerName = (String) reader.readObject();
             synchronized (GameSession.this) {
-                playerDataList.set(playerNum, new PlayerData(playerName));
+                data = new PlayerData(playerName);
+                playerDataList.add(data);
             }
 
             writer.writeObject(ServerCommand.TEXT);
             writer.writeObject(text);
-
-            writer.writeObject(ServerCommand.PLAYER_NUM);
-            writer.writeInt(playerNum);
 
             writer.flush();
         }
@@ -185,11 +200,15 @@ public class GameSession {
             int errorsCount = reader.readInt();
             int finishTime = reader.readInt();
             synchronized (GameSession.this) {
-                playerDataList.get(playerNum).setInputCharsCount(inputCharsCount);
-                playerDataList.get(playerNum).setErrorsCount(errorsCount);
-                playerDataList.get(playerNum).setFinishTime(finishTime);
+                data.setInputCharsCount(inputCharsCount);
+                data.setErrorsCount(errorsCount);
+                data.setFinishTime(finishTime);
             }
 
+            sendGameData(writer);
+        }
+
+        private void sendGameData(ObjectOutputStream writer) throws IOException {
             writer.writeObject(ServerCommand.DATA_LIST);
             writer.reset();
             writer.writeObject(playerDataList);

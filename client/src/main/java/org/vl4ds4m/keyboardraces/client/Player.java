@@ -145,13 +145,8 @@ class Player implements Runnable {
                 newPlayerDataList.sort(PlayerData.RATE_COMP);
 
                 Platform.runLater(() -> {
-                    for (int i = 0; i < newPlayerDataList.size(); ++i) {
-                        if (i == playerDataList.size()) {
-                            playerDataList.add(newPlayerDataList.get(i));
-                        } else {
-                            playerDataList.set(i, newPlayerDataList.get(i));
-                        }
-                    }
+                    playerDataList.clear();
+                    playerDataList.addAll(newPlayerDataList);
                 });
             }
         }

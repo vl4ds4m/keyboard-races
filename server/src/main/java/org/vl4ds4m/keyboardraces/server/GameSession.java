@@ -38,6 +38,7 @@ public class GameSession {
         if (gameState == GameState.INIT) {
             PlayerHandler handler = new PlayerHandler(playerSocket, handlers.size());
 
+            playerDataList.add(new PlayerData("NewPlayer"));
             handlers.add(handler);
             playersExecutor.execute(handler);
 
@@ -56,7 +57,9 @@ public class GameSession {
             synchronized (GameSession.this) {
                 remainTime -= 1;
 
-                if (gameState == GameState.INIT && handlers.size() == GameSettings.MAX_PLAYERS_COUNT) {
+                if (playersFinishedGame()) {
+                    finishGame();
+                } else if (gameState == GameState.INIT && handlers.size() == GameSettings.MAX_PLAYERS_COUNT) {
                     gameState = GameState.READY;
                     remainTime = GameSettings.COUNTDOWN_TIME;
                 } else if (remainTime == 0) {
@@ -69,8 +72,6 @@ public class GameSession {
                     } else if (gameState == GameState.STARTED) {
                         finishGame();
                     }
-                } else if (gameState == GameState.STARTED && playersFinishedGame()) {
-                    finishGame();
                 }
 
                 for (PlayerHandler handler : handlers) {
@@ -160,7 +161,7 @@ public class GameSession {
 
             String playerName = (String) reader.readObject();
             synchronized (GameSession.this) {
-                playerDataList.add(new PlayerData(playerName));
+                playerDataList.set(playerNum, new PlayerData(playerName));
             }
 
             writer.writeObject(ServerCommand.TEXT);

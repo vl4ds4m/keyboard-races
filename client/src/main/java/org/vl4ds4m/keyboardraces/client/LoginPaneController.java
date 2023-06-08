@@ -40,9 +40,7 @@ public class LoginPaneController {
         }
 
         ((GamePaneController) gameLoader.getController()).createPlayer(
-                playerName.getText(),
-                serverAddress.getText(),
-                Integer.parseInt(serverPort.getText()));
+                playerName.getText(), serverAddress.getText(), serverPort.getText());
 
         Stage stage = (Stage) startButton.getScene().getWindow();
         Main.setStageParams(stage, gamePane);

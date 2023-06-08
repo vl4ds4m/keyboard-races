@@ -40,7 +40,6 @@ public class GamePaneController {
         @Override
         public void paste() {
         }
-
     };
 
     @FXML
@@ -59,7 +58,7 @@ public class GamePaneController {
 
     private Player player;
 
-    void createPlayer(String name, String serverAddress, int serverPort) {
+    void createPlayer(String name, String serverAddress, String serverPort) {
         player = new Player(name, serverAddress, serverPort);
 
         newGameButton.setDisable(true);
@@ -75,6 +74,8 @@ public class GamePaneController {
         timerDescr.setText("Ожидание игроков");
         timer.textProperty().bind(player.getRemainTimeProperty());
 
+        playersResults.setText("Список игроков");
+
         player.getPlayerDataList().addListener(new ResultsListener());
         player.getGameStateProperty().addListener(new GameStateListener());
         player.getConnectedProperty().addListener(new ConnectionListener());
@@ -88,10 +89,13 @@ public class GamePaneController {
         @Override
         public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
+
             alert.setTitle("Keyboard Races");
             alert.setHeaderText("Ошибка соединения с сервером.");
             alert.setContentText("Причина: " + t1);
-            alert.show();
+
+            alert.showAndWait();
+            Platform.exit();
         }
     }
 

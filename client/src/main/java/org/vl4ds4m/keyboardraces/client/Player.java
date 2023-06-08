@@ -12,13 +12,15 @@ import org.vl4ds4m.keyboardraces.game.ServerCommand;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.List;
 
 class Player implements Runnable {
     private final PlayerData data;
     private final String serverAddress;
-    private final int serverPort;
+    private final String serverPort;
     private int playerNum = -1;
     private final SimpleStringProperty text = new SimpleStringProperty("");
     private final ObservableList<PlayerData> playerDataList = FXCollections.observableArrayList();
@@ -26,7 +28,7 @@ class Player implements Runnable {
     private final SimpleStringProperty remainTimeProperty = new SimpleStringProperty();
     private final SimpleStringProperty connectedProperty = new SimpleStringProperty("Connection");
 
-    public Player(String name, String serverAddress, int serverPort) {
+    public Player(String name, String serverAddress, String serverPort) {
         data = new PlayerData(name);
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
@@ -37,7 +39,7 @@ class Player implements Runnable {
         return serverAddress;
     }
 
-    public int getServerPort() {
+    public String getServerPort() {
         return serverPort;
     }
 
@@ -67,7 +69,7 @@ class Player implements Runnable {
 
     @Override
     public void run() {
-        try (Socket socket = new Socket(serverAddress, serverPort);
+        try (Socket socket = new Socket(serverAddress, Integer.parseInt(serverPort));
              ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
              ObjectOutputStream writer = new ObjectOutputStream(socket.getOutputStream())) {
 
@@ -77,8 +79,13 @@ class Player implements Runnable {
             }
             Platform.runLater(() -> gameStateProperty.set(GameState.STOPPED));
 
+        } catch (NumberFormatException e) {
+            Platform.runLater(() -> connectedProperty.set("Порт сервера должен быть числом."));
+        } catch (UnknownHostException e) {
+            Platform.runLater(() -> connectedProperty.set("Нет такого подключения."));
+        } catch (ConnectException e) {
+            Platform.runLater(() -> connectedProperty.set("Данный порт недоступен для подключения."));
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             Platform.runLater(() -> {
                 if (e.getMessage() != null) {
                     connectedProperty.set(e.getMessage());

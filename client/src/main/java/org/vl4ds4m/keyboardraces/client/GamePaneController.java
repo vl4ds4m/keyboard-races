@@ -286,18 +286,27 @@ public class GamePaneController {
         public void onChanged(Change<? extends PlayerData> change) {
             int place = 1;
             StringBuilder results = new StringBuilder();
+            GameState currentState = player.getGameStateProperty().get();
 
             for (int i = 0; i < player.getPlayerDataList().size(); ++i) {
                 PlayerData current = player.getPlayerDataList().get(i);
-                if (i == 0) {
-                    results.append(place).append(".\t").append(getPlayerResult(current));
+
+                if (currentState == GameState.INIT || currentState == GameState.READY) {
+                    if (i != 0) {
+                        results.append("\n");
+                    }
+                    results.append(getPlayerResult(current));
                 } else {
-                    results.append("\n");
-                    PlayerData previous = player.getPlayerDataList().get(i - 1);
-                    if (PlayerData.RATE_COMP.compare(current, previous) == 0) {
-                        results.append("\t").append(getPlayerResult(current));
+                    if (i == 0) {
+                        results.append(place).append(".\t").append(getPlayerResult(current));
                     } else {
-                        results.append(++place).append(".\t").append(getPlayerResult(current));
+                        results.append("\n");
+                        PlayerData previous = player.getPlayerDataList().get(i - 1);
+                        if (PlayerData.RATE_COMP.compare(current, previous) == 0) {
+                            results.append("\t").append(getPlayerResult(current));
+                        } else {
+                            results.append(++place).append(".\t").append(getPlayerResult(current));
+                        }
                     }
                 }
             }
@@ -307,8 +316,8 @@ public class GamePaneController {
 
         private String getPlayerResult(PlayerData playerData) {
             if (playerData.connected()) {
-                if (player.getGameStateProperty().get() == GameState.INIT ||
-                        player.getGameStateProperty().get() == GameState.READY) {
+                GameState currentState = player.getGameStateProperty().get();
+                if (currentState == GameState.INIT || currentState == GameState.READY) {
                     return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "");
                 }
 

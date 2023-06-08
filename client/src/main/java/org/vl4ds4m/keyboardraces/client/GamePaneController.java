@@ -315,7 +315,7 @@ public class GamePaneController {
         }
 
         private String getPlayerResult(PlayerData playerData) {
-            if (playerData.connected()) {
+            if (playerData.connected() || playerData.getFinishTime() >= 0) {
                 GameState currentState = player.getGameStateProperty().get();
                 if (currentState == GameState.INIT || currentState == GameState.READY) {
                     return playerData.getName() + (playerData.currentPlayer() ? " (Вы)" : "");

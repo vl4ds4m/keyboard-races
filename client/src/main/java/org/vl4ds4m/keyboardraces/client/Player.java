@@ -15,6 +15,7 @@ import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 class Player implements Runnable {
@@ -134,7 +135,9 @@ class Player implements Runnable {
             }
 
             case DATA_LIST -> {
-                List<PlayerData> newPlayerDataList = (List<PlayerData>) reader.readObject();
+                List<?> rawList = (List<?>) reader.readObject();
+                List<PlayerData> newPlayerDataList = new ArrayList<>();
+                rawList.forEach(item -> newPlayerDataList.add((PlayerData) item));
 
                 for (int i = 0; i < newPlayerDataList.size(); ++i) {
                     if (i == playerNum) {

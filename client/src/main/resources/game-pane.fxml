@@ -77,9 +77,37 @@
                     <Font size="16.0"/>
                 </font>
             </Label>
+            <TextFlow fx:id="textPane" maxHeight="10.0" maxWidth="750.0">
 
-            <FlowPane fx:id="wordsPane" alignment="CENTER" columnHalignment="CENTER" maxHeight="300.0" maxWidth="750.0"
-                      prefWrapLength="300.0"/>
+                <Text fx:id="leftText" strokeType="OUTSIDE" strokeWidth="0.0"
+                      text="Minecraft - компьютерная инди-игра, созданная шведским программистом Маркусом Перссоном на языке программирования Java. Игра создает процедурно генерируемый и изменяемый трехмерный мир, полностью состоящий из ">
+                    <font>
+                        <Font size="20.0"/>
+                    </font>
+                </Text>
+
+                <TextFlow>
+                    <Text fx:id="currentLeft" fill="GREEN" strokeType="OUTSIDE" strokeWidth="0.0" text="ку">
+                        <font>
+                            <Font name="System Bold" size="20.0"/>
+                        </font>
+                    </Text>
+
+                    <Text fx:id="currentRight" strokeType="OUTSIDE" strokeWidth="0.0" text="бов ">
+                        <font>
+                            <Font name="System Bold" size="20.0"/>
+                        </font>
+                    </Text>
+                </TextFlow>
+
+                <Text fx:id="rightText" strokeType="OUTSIDE" strokeWidth="0.0"
+                      text="- его можно свободно перестраивать, создавая из этих кубов сложные сооружения. Minecraft является самой продаваемой игрой в истории: более 238 миллионов продаж на 2021 год.">
+                    <font>
+                        <Font size="20.0"/>
+                    </font>
+                </Text>
+
+            </TextFlow>
 
             <StackPane alignment="BOTTOM_CENTER" maxHeight="350.0" maxWidth="800.0">
 

@@ -9,11 +9,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import org.vl4ds4m.keyboardraces.game.GameSettings;
 import org.vl4ds4m.keyboardraces.game.GameState;
 import org.vl4ds4m.keyboardraces.game.PlayerData;
@@ -33,8 +33,6 @@ public class GamePaneController {
     @FXML
     private Button newGameButton;
     @FXML
-    private FlowPane wordsPane;
-    @FXML
     private StackPane inputPane;
     private final TextField input = new TextField() {
         @Override
@@ -49,6 +47,8 @@ public class GamePaneController {
         input.setFont(Font.font(16.0));
 
         inputPane.getChildren().add(input);
+
+        textPane.setVisible(false);
     }
 
     @FXML
@@ -100,8 +100,16 @@ public class GamePaneController {
     }
 
     private List<String> words;
-    private static final Font USUAL_FONT = Font.font("System", 20.0);
-    private static final Font BOLD_FONT = new Font("System Bold", 20.0);
+    @FXML
+    private TextFlow textPane;
+    @FXML
+    private Text leftText;
+    @FXML
+    private Text currentLeft;
+    @FXML
+    private Text currentRight;
+    @FXML
+    private Text rightText;
 
     private class InputCharsListener implements ChangeListener<String> {
         private int currentWordNum = 0;
@@ -114,28 +122,22 @@ public class GamePaneController {
             oldWordRight = true;
             wrongCharPos = -1;
             maxLengthRightWord = 0;
+            currentWord = words.get(currentWordNum);
 
-            ((Text) wordsPane.getChildren().get(currentWordNum)).setFill(Color.GREEN);
-            ((Text) wordsPane.getChildren().get(currentWordNum)).setFont(BOLD_FONT);
-            ((Text) wordsPane.getChildren().get(currentWordNum + 1)).setFont(BOLD_FONT);
+            currentLeft.setText("");
+            currentRight.setText(currentWord);
+            rightText.setText(rightText.getText().substring(currentWord.length()));
         }
 
         private String newWord;
         private String currentWord;
-        private Text leftPart;
-        private Text rightPart;
 
         @Override
         public void changed(ObservableValue<? extends String> observableWord, String oldValue, String newValue) {
             synchronized (player.getData()) {
                 newWord = newValue;
 
-                leftPart = (Text) wordsPane.getChildren().get(currentWordNum);
-                rightPart = (Text) wordsPane.getChildren().get(currentWordNum + 1);
-
-                currentWord = words.get(currentWordNum);
-
-                System.out.println("Old word: <" + leftPart.getText() + "> -> <" + rightPart.getText() + ">");
+                System.out.println("Old word: <" + currentLeft.getText() + "> -> <" + currentRight.getText() + ">");
                 System.out.println(oldValue + " -> " + newWord);
 
                 if (currentWord.startsWith(newWord)) {
@@ -146,23 +148,25 @@ public class GamePaneController {
                         increaseInputCharsCount();
                         if (currentWord.equals(newWord)) {
                             setNextWord();
+                        } else {
+                            changeWordSplit();
                         }
+                    } else {
+                        changeWordSplit();
                     }
                 } else if (oldWordRight) {
                     setError();
                 }
-
-                changeWordSplit();
             }
         }
 
         private void changeWordSplit() {
             if (wrongCharPos < 0) {
-                leftPart.setText(newWord);
-                rightPart.setText(currentWord.substring(newWord.length()));
+                currentLeft.setText(newWord);
+                currentRight.setText(currentWord.substring(newWord.length()));
             } else {
-                leftPart.setText(newWord.substring(0, wrongCharPos));
-                rightPart.setText(currentWord.substring(wrongCharPos));
+                currentLeft.setText(newWord.substring(0, wrongCharPos));
+                currentRight.setText(currentWord.substring(wrongCharPos));
             }
         }
 
@@ -175,16 +179,16 @@ public class GamePaneController {
         private void setNextWord() {
             maxLengthRightWord = 0;
 
-            leftPart.setFill(Color.BLACK);
-            leftPart.setFont(USUAL_FONT);
+            leftText.setText(leftText.getText() + currentWord);
 
             if (currentWordNum == words.size() - 1) {
                 player.getData().setFinishTime(Integer.parseInt(player.getRemainTimeProperty().get()));
                 player.getGameStateProperty().set(GameState.STOPPED);
             } else {
-                ++currentWordNum;
-                rightPart.setFill(Color.GREEN);
-                ((Text) wordsPane.getChildren().get(currentWordNum + 1)).setFont(BOLD_FONT);
+                currentWord = words.get(++currentWordNum);
+                currentLeft.setText("");
+                currentRight.setText(currentWord);
+                rightText.setText(rightText.getText().substring(currentWord.length()));
             }
 
             Platform.runLater(input::clear);
@@ -194,13 +198,13 @@ public class GamePaneController {
             oldWordRight = false;
             player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
             wrongCharPos = newWord.length() - 1;
-            rightPart.setFill(Color.RED);
+            currentRight.setFill(Color.RED);
         }
 
         private void unsetError() {
             oldWordRight = true;
             wrongCharPos = -1;
-            rightPart.setFill(Color.BLACK);
+            currentRight.setFill(Color.BLACK);
         }
     }
 
@@ -208,8 +212,8 @@ public class GamePaneController {
         private final InputCharsListener inputCharsListener = new InputCharsListener();
 
         @Override
-        public void changed(ObservableValue<? extends GameState> observableValue, GameState gameState, GameState t1) {
-            if (t1 == GameState.READY) {
+        public void changed(ObservableValue<? extends GameState> observableValue, GameState t0, GameState gs) {
+            if (gs == GameState.READY) {
                 promptText.setVisible(false);
 
                 timerDescr.setText("Игра начнется через:");
@@ -219,13 +223,18 @@ public class GamePaneController {
                     words.set(i, words.get(i) + " ");
                 }
 
-                initializeWordsPane();
-                wordsPane.setVisible(true);
+                leftText.setText("");
+                currentLeft.setText("");
+                currentRight.setText("");
+                rightText.setText(String.join("", words));
 
-            } else if (t1 == GameState.STARTED) {
+                textPane.setOpacity(0.2);
+                textPane.setVisible(true);
+
+            } else if (gs == GameState.STARTED) {
                 timerDescr.setText("Игра закончится через:");
 
-                wordsPane.getChildren().forEach(text -> text.setOpacity(1.0));
+                textPane.setOpacity(1.0);
 
                 inputCharsListener.initialize();
 
@@ -234,11 +243,11 @@ public class GamePaneController {
                 input.requestFocus();
                 input.textProperty().addListener(inputCharsListener);
 
-            } else if (t1 == GameState.STOPPED) {
+            } else if (gs == GameState.STOPPED) {
                 input.setDisable(true);
                 input.textProperty().removeListener(inputCharsListener);
 
-                wordsPane.setVisible(false);
+                textPane.setVisible(false);
 
                 timerDescr.setText("Игра окончена");
                 timer.textProperty().unbind();
@@ -251,18 +260,6 @@ public class GamePaneController {
                 newGameButton.setVisible(true);
                 newGameButton.setDisable(false);
             }
-        }
-
-        private void initializeWordsPane() {
-            wordsPane.getChildren().clear();
-
-            wordsPane.getChildren().add(new Text(""));
-            words.forEach(word -> wordsPane.getChildren().add(new Text(word)));
-
-            wordsPane.getChildren().forEach(text -> {
-                ((Text) text).setFont(USUAL_FONT);
-                text.setOpacity(0.2);
-            });
         }
 
         private void printResult() {

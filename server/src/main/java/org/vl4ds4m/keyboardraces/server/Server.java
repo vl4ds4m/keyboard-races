@@ -13,9 +13,14 @@ public class Server {
         if (args.length == 1) {
             try {
                 int port = Integer.parseInt(args[0]);
+                if (port < 0 || port >= (1 << 16)) {
+                    throw new NumberFormatException();
+                }
                 launch(port);
             } catch (NumberFormatException e) {
                 System.out.println("Invalid argument.");
+            } catch (Exception e) {
+                System.out.println("Exception has been thrown: " + e.getMessage());
             }
         } else if (args.length == 0) {
             launch(DEFAULT_PORT);

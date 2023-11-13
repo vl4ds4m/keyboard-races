@@ -114,13 +114,13 @@ public class GamePaneController {
     private class InputCharsListener implements ChangeListener<String> {
         private int currentWordNum = 0;
         private boolean oldWordRight = true;
-        private int wrongCharPos = -1;
+        private int firstWrongPos = -1;
         private int maxLengthRightWord = 0;
 
         private void initialize() {
             currentWordNum = 0;
             oldWordRight = true;
-            wrongCharPos = -1;
+            firstWrongPos = -1;
             maxLengthRightWord = 0;
             currentWord = words.get(currentWordNum);
 
@@ -137,9 +137,6 @@ public class GamePaneController {
             synchronized (player.getData()) {
                 newWord = newValue;
 
-                System.out.println("Old word: <" + currentLeft.getText() + "> -> <" + currentRight.getText() + ">");
-                System.out.println(oldValue + " -> " + newWord);
-
                 if (currentWord.startsWith(newWord)) {
                     if (!oldWordRight) {
                         unsetError();
@@ -154,19 +151,23 @@ public class GamePaneController {
                     } else {
                         changeWordSplit();
                     }
-                } else if (oldWordRight) {
-                    setError();
+                } else {
+                    if (oldWordRight) {
+                        setError();
+                    }
+                    findFirstWrongPos();
+                    changeWordSplit();
                 }
             }
         }
 
         private void changeWordSplit() {
-            if (wrongCharPos < 0) {
+            if (firstWrongPos < 0) {
                 currentLeft.setText(newWord);
                 currentRight.setText(currentWord.substring(newWord.length()));
             } else {
-                currentLeft.setText(newWord.substring(0, wrongCharPos));
-                currentRight.setText(currentWord.substring(wrongCharPos));
+                currentLeft.setText(newWord.substring(0, firstWrongPos));
+                currentRight.setText(currentWord.substring(firstWrongPos));
             }
         }
 
@@ -197,14 +198,20 @@ public class GamePaneController {
         private void setError() {
             oldWordRight = false;
             player.getData().setErrorsCount(player.getData().getErrorsCount() + 1);
-            wrongCharPos = newWord.length() - 1;
             currentRight.setFill(Color.RED);
         }
 
         private void unsetError() {
             oldWordRight = true;
-            wrongCharPos = -1;
+            firstWrongPos = -1;
             currentRight.setFill(Color.BLACK);
+        }
+
+        private void findFirstWrongPos() {
+            firstWrongPos = newWord.length() - 1;
+            while (!currentWord.startsWith(newWord.substring(0, firstWrongPos))) {
+                firstWrongPos -= 1;
+            }
         }
     }
 

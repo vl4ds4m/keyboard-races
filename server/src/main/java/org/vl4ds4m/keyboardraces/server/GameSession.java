@@ -7,6 +7,7 @@ import org.vl4ds4m.keyboardraces.game.ServerCommand;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,8 +27,12 @@ public class GameSession {
 
     public GameSession() throws Exception {
         int textNum = new Random().nextInt(TEXTS.size());
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(
-                GameSession.class.getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)))))) {
+        try (InputStream inputStream = Objects.requireNonNull(GameSession.class
+                .getResourceAsStream(TEXTS_DIR + TEXTS.get(textNum)));
+             InputStreamReader inputStreamReader =
+                     new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+             BufferedReader reader = new BufferedReader(inputStreamReader)
+        ) {
             text = reader.readLine();
         } catch (IOException e) {
             throw new Exception(e);

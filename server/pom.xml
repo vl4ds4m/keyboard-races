@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.vl4ds4m.keyboardraces</groupId>
         <artifactId>keyboard-races</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>server</artifactId>
@@ -20,8 +20,23 @@
         <dependency>
             <groupId>org.vl4ds4m.keyboardraces</groupId>
             <artifactId>game</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.vl4ds4m.keyboardraces.server.Server</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

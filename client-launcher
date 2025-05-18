@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-APP_PATH="C:\Users\vladsam\applications\keyboard-races"
-"$JAVA_HOME"/bin/java --module-path "$APP_PATH;$APP_PATH/javafx-sdk-17.0.9/lib" \
---module org.vl4ds4m.keyboardraces.client/org.vl4ds4m.keyboardraces.client.Main

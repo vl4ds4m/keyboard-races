@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.vl4ds4m.keyboardraces</groupId>
         <artifactId>keyboard-races</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>game</artifactId>
